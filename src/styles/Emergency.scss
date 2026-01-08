@@ -1,0 +1,170 @@
+/* base */
+:root{
+  --bg: #ffffff;
+  --card: #eae1d0; /* beige */
+  --pill: #ded3b6;
+  --accent: #e63946;
+  --text:#1f1f1f;
+}
+/* top bar */
+.topbar{
+  background:#f3ebe0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 40px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  .logo{font-weight:700;color:#c43b3b}
+  .nav{color:#6b5a4c}
+}
+
+/* page layout */
+.form-area{
+  max-width: 1100px;
+  margin: 36px auto;
+  padding: 30px;
+  position:relative;
+  background: transparent;
+}
+
+.title{
+  text-align:center;
+  font-size:32px;
+  margin-bottom: 28px;
+  font-weight:700;
+}
+
+/* form grid */
+.request-form{
+  display:grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+  align-items:start;
+}
+
+/* left column inputs style as rounded pills */
+.left-col{
+  .field-label{
+    display:block;
+    margin: 14px 0 8px;
+    font-weight:600;
+    color:#333;
+    text-align: left;
+  }
+  .input-pill{
+    width: 100%;
+    padding:14px 18px;
+    border-radius:30px;
+    border: none;
+    background: var(--pill);
+    outline: none;
+    box-shadow: inset 0 2px 0 rgba(0,0,0,0.03);
+  }
+  .err{color:#c33;margin-left:6px;font-size:12px}
+}
+
+/* right column boxes */
+.right-col{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+/* generic box */
+.box{
+  background: var(--card);
+  padding: 14px;
+  border-radius: 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+/* blood type grid */
+.box-title{
+  font-weight:700;
+  margin-bottom:8px;
+}
+.grid-blood{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:8px 12px;
+}
+
+/* radio pill for blood */
+.radio-pill{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  background: var(--pill);
+  border-radius:12px;
+  cursor:pointer;
+  transition: all .15s ease;
+  input{ display:none; }
+  .bt-text{ font-weight:600; color:#2b556f; }
+  &.active{
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    background: #fff;
+  }
+}
+
+/* urgency pills */
+.urgency-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.urgency-pill{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  border-radius:8px;
+  background: var(--pill);
+  width:120px;
+  cursor:pointer;
+  input{ display:none; }
+  .u-text{ text-transform:lowercase; color:#2b556f; font-weight:600 }
+  &.active{
+    background:#fff;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    transform: translateX(-2px);
+  }
+}
+
+/* submit */
+.submit-wrap{
+  grid-column: 1 / -1;
+  display:flex;
+  justify-content:center;
+  margin-top:22px;
+  .submit-btn{
+    background: var(--accent);
+    color:#fff;
+    padding:14px 36px;
+    border-radius:28px;
+    border:none;
+    font-weight:700;
+    font-size:16px;
+    text-decoration: none;
+    box-shadow: 0 8px 18px rgba(198,57,70,0.2);
+    cursor:pointer;
+  }
+}
+
+/* illustration example (optional) */
+.illustration{
+  position:absolute;
+  right:-60px;
+  top:20px;
+  width:220px;
+  opacity:0.18;
+  img{ width:100%; border-radius:12px }
+}
+
+/* responsive */
+@media (max-width: 900px){
+  .request-form{ grid-template-columns: 1fr; }
+  .left-col .input-pill{ width:100% }
+  .illustration{ display:none }
+}

@@ -1,0 +1,140 @@
+.Second {
+  .container {
+    .x {
+      display: flex;
+      margin-left: 120px;
+    }
+    .side {
+      display: flex;
+      width: 1400px;
+      .right-side {
+        width: 50%;
+        display: block;
+        padding: 80px 150px;
+        .head-right {
+          margin-bottom: 40px;
+          text-transform: capitalize;
+        }
+        .label-email , .label-pass {
+          display: block;
+          width: 80%;
+          text-align: left;
+          text-transform: capitalize;
+          margin-bottom: 10px;
+        }
+        .input-email {
+          display: block;
+          width: 100%;
+          margin: 0 auto;
+          margin-bottom: 20px;
+        }
+        .input-pass {
+          display: block;
+          width: 100%;
+          margin: 0 auto;
+          margin-bottom: 40px;
+        }
+        .btn {
+          width: 100%;
+          cursor: pointer;
+          display: block;
+        }
+        .two-end {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 10px;
+          text-transform: capitalize;
+
+        }
+
+      }
+      .left-side {
+        width: 50%;
+        .img-one {
+          width: 600px;
+        }
+
+      }
+    }
+  }
+}
+.options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
+  margin-bottom: 90px;
+
+  a {
+    color: #555;
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #777;
+  font-size: 0.9rem;
+
+  span {
+    position: relative;
+    width: 100%;
+    &:before,
+    &:after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 60%;
+      height: 2px;
+      background: #ca1e1e;
+    }
+    &:before {
+      left: -40%;
+      position: absolute;
+    }
+    &:after {
+      right: -50%;
+    }
+  }
+}
+
+.signup-text {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+
+  .sign {
+    color: #223;
+    font-weight: 600;
+    text-decoration: underline;
+
+    &:hover {
+      color: #e53935;
+    }
+  }
+}
+
+.social-login {
+  font-size: 29px;
+  .face {
+    color: blue;
+    cursor: pointer;
+    margin-right: 10px;
+
+  }
+  .insta {
+    color: brown;
+    cursor: pointer;
+
+  }
+}
+
+.fg {
+  margin-bottom: 30px;
+}

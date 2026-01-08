@@ -1,0 +1,68 @@
+.Three {
+  .x {
+    display: inline-block;
+    text-align: left;
+
+  }
+  .container {
+    .side {
+      display: flex;
+      width: 1400px;
+      .right-side {
+        width: 50%;
+        display: block;
+        padding: 80px 150px;
+        .head-right {
+          margin-bottom: 40px;
+          text-transform: capitalize;
+        }
+        .label-x , .label-pass {
+          display: block;
+          width: 80%;
+          text-align: left;
+          text-transform: capitalize;
+          margin-bottom: 10px;
+        }
+        .input-x {
+          display: block;
+          width: 100%;
+          margin: 0 auto;
+          margin-bottom: 20px;
+        }
+        .input-pass {
+          display: block;
+          width: 100%;
+          margin: 0 auto;
+          margin-bottom: 20px;
+        }
+        .btn {
+          width: 100%;
+          cursor: pointer;
+          display: block;
+          margin-top: 70px;
+        }
+        .haveAcc {
+          display: flex;
+          margin-top: 80px;
+          justify-content: center;
+          color: #979090;
+          .log {
+            color: #333;
+            text-decoration: underline;
+            font-weight: bold;
+            margin-left: 10px;
+          }
+
+        }
+
+      }
+      .left-side {
+        width: 50%;
+        .img-one {
+          width: 600px;
+        }
+
+      }
+    }
+  }
+}

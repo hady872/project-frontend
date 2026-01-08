@@ -1,0 +1,234 @@
+.home {
+  background: #FFFAF7;
+  color: #333;
+  font-family: "Poppins", sans-serif;
+}
+
+/* 🔝 Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 50px;
+  background: #F5EBDD;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    img {
+      width: 113px;
+      height: 73px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #d63333;
+    }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 100px;
+    list-style: none;
+
+    a {
+      text-decoration: none;
+      color: #444;
+      font-weight: 500;
+      &:hover {
+        color: #d63333;
+      }
+    }
+  }
+
+  .icons {
+    display: flex;
+    gap: 20px;
+    font-size: 18px;
+    color: #444;
+    cursor: pointer;
+  }
+}
+
+/* 🩸 Hero */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 60px 100px;
+  flex-wrap: wrap;
+
+  .text {
+    flex: 1;
+    min-width: 300px;
+
+    h2 {
+      font-size: 24px;
+      line-height: 1.5;
+      span {
+        color: #DE8F4B;
+        font-weight: 600;
+      }
+    }
+
+    .donate-btn {
+      margin-top: 30px !important;
+      background: #d63333;
+      color: #fff;
+      border: none;
+      width: 400px;
+      padding: 12px 30px;
+      border-radius: 30px;
+      font-weight: 600;
+      margin: 0 auto;
+      display: block;
+      text-decoration: none;
+      cursor: pointer;
+      &:hover {
+        background: #b82828;
+      }
+    }
+  }
+
+  .image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+
+    img {
+      width: 80%;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+/* 📊 Stats */
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 40px 0;
+  flex-wrap: wrap;
+
+  .stat-box {
+    background: #F5EBDD;
+    padding: 25px 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+
+    h3 {
+      color: #d63333;
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+
+    p {
+      color: #444;
+      font-weight: 500;
+    }
+  }
+}
+
+/* 🗺️ Map */
+.map-section {
+  text-align: center;
+  padding: 40px 80px;
+
+  .search-bar {
+    width: 100%;
+    max-width: 700px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    outline: none;
+  }
+
+  .map {
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* 💬 Testimonials */
+.testimonials {
+  padding: 50px 10%;
+  background-color: #FFFAF7;
+
+  h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2rem;
+    color: #ff0000;
+  }
+
+  .reviews-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+
+  .review-card {
+    background-color: #fff;
+    padding: 20px;
+    width: 300px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    h4 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 5px;
+      font-size: 1.1rem;
+
+      .review-icon {
+        color: #F5EBDD;
+        font-size: 30px;
+      }
+    }}}
+
+/* ⚙️ Footer */
+.footer {
+  background: #fff4eb;
+  text-align: center;
+  padding: 30px 20px;
+  margin-top: 40px;
+
+  .links {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 20px;
+
+    a {
+      color: #444;
+      text-decoration: none;
+      &:hover {
+        color: #d63333;
+      }
+    }
+  }
+
+  .social {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    color: #444;
+    font-size: 20px;
+  }
+}

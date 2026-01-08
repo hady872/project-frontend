@@ -1,0 +1,144 @@
+.center-page {
+  font-family: "Inter", sans-serif;
+  text-align: center;
+  color: #222;
+  padding-bottom: 3rem;
+
+  .center-header {
+    margin-top: 2rem;
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #555;
+      font-size: 1rem;
+    }
+  }
+
+  .blood-stock {
+    margin-top: 2.5rem;
+
+    h2 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .stock-grid {
+      display: flex;
+      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+      gap: 1rem;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .stock-box {
+      background: #d6e9f9;
+      color: #000;
+      border-radius: 10px;
+      padding: 1rem 0;
+      width: 120px;
+      text-align: center;
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+
+      &.low {
+        background: #f55b5b;
+        color: #fff;
+      }
+
+      .type {
+        display: block;
+        font-size: 1.2rem;
+      }
+
+      .count {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  .hospitals {
+    margin-top: 3rem;
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .hospitals-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .hospital-box {
+      background: #f7e8c8;
+      padding: 0.9rem 1.2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      font-weight: 500;
+      transition: transform 0.2s;
+
+      &:hover {
+        transform: translateY(-3px);
+      }
+    }
+  }
+
+  .donate-btn {
+    margin-top: 2.5rem;
+    background: #e53935;
+    color: #fff;
+    display: block;
+    width: 220px;
+    margin: 0 auto;
+    text-decoration: none;
+    margin-top: 30px;
+    border: none;
+    border-radius: 25px;
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    transition: 0.3s;
+
+    &:hover {
+      background: #c62828;
+      transform: translateY(-2px);
+    }
+  }
+}
+
+/* ✅ Responsive */
+@media (max-width: 768px) {
+  .center-page {
+    .stock-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .hospitals-grid {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hospital-box {
+      width: 90%;
+    }
+  }
+}

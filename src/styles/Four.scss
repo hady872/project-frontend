@@ -1,0 +1,60 @@
+.Four {
+  .x {
+    display: flex;
+    margin-left: 140px;
+  }
+  .container {
+    .side {
+      display: flex;
+      width: 1400px;
+      .right-side {
+        width: 50%;
+        display: block;
+        padding: 300px 150px;
+        .head-right {
+          margin-bottom: 40px;
+          text-transform: capitalize;
+        }
+        .label-x {
+          display: block;
+          width: 80%;
+          text-align: left;
+          text-transform: capitalize;
+          margin-bottom: 10px;
+        }
+        .input-x {
+          display: block;
+          width: 100%;
+          margin: 0 auto;
+          margin-bottom: 20px;
+        }
+        .btn {
+          width: 100%;
+          cursor: pointer;
+          display: block;
+          margin-top: 50px;
+        }
+        .sign-u {
+          color: #5d656a;
+          margin-bottom: 20px;
+          &:first-of-type {
+            margin-top: 50px;
+          }
+          .s {
+            color: #333;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-left: 10px;
+          }
+        }
+      }
+      .left-side {
+        width: 50%;
+        .img-one {
+          width: 600px;
+        }
+
+      }
+    }
+  }
+}
