@@ -11,7 +11,7 @@ import { faFacebook, faInstagram, faGoogle } from "@fortawesome/free-brands-svg-
 
 function Home() {
   const [bloodBanks, setBloodBanks] = useState([]);
-  const [dataSource, setDataSource] = useState("loading"); // loading | live | mock
+  // const [dataSource, setDataSource] = useState("loading"); // loading | live | mock
 
   useEffect(() => {
     const load = async () => {
@@ -25,10 +25,10 @@ function Home() {
         const data = await res.json();
 
         setBloodBanks(Array.isArray(data) ? data : []);
-        setDataSource("live");
+        // setDataSource("live");
       } catch (err) {
         setBloodBanks(Array.isArray(mockBloodBanks) ? mockBloodBanks : []);
-        setDataSource("mock");
+        // setDataSource("mock");
       }
     };
 
@@ -38,7 +38,7 @@ function Home() {
   return (
     <div className="home">
       {/* ✅ العلامة اللي قلتلك عليها: هتظهر فوق عالشمال */}
-      <h1
+      {/* <h1
         style={{
           position: "fixed",
           top: 10,
@@ -51,7 +51,7 @@ function Home() {
         }}
       >
         HOME PAGE ✅
-      </h1>
+      </h1> */}
 
       {/* 🔝 Navbar */}
       <Navbar />
@@ -99,11 +99,11 @@ function Home() {
               opacity: 0.9,
             }}
           >
-            {dataSource === "loading"
+            {/* {dataSource === "loading"
               ? "Loading..."
               : dataSource === "live"
               ? "Live Data"
-              : "Mock Data"}
+              : "Mock Data"} */}
           </span>
         </div>
 
@@ -125,8 +125,17 @@ function Home() {
                 </div>
 
                 <div style={{ opacity: 0.85, marginTop: 4 }}>
-                  {[b.city, b.location].filter(Boolean).join(" - ") ||
-                    "No address"}
+                  {(() => {
+  const city = b.city?.trim();
+  const location = b.location?.trim();
+
+  if (!city && !location) return "No address";
+  if (city && location && city.toLowerCase() === location.toLowerCase())
+    return city;
+
+  return [city, location].filter(Boolean).join(" - ");
+})()}
+                    
                 </div>
 
                 <div style={{ marginTop: 6 }}>
