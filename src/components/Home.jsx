@@ -17,7 +17,7 @@ function Home() {
     const load = async () => {
       try {
         const res = await fetch(
-          "https://myprojectapi.runasp.net/api/BloodBanks/GetAllBloodBank"
+          "http://localhost:5240/api/BloodBanks/GetAllBloodBank"
         );
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -113,7 +113,7 @@ function Home() {
           <div style={{ display: "grid", gap: 12 }}>
             {bloodBanks.map((b, idx) => (
               <div
-                key={b.id ?? b._id ?? b.name ?? idx}
+                key={b.bankID ?? b.id ?? b._id ?? idx}
                 style={{
                   border: "1px solid #ddd",
                   borderRadius: 12,
@@ -121,15 +121,20 @@ function Home() {
                 }}
               >
                 <div style={{ fontWeight: 700 }}>
-                  {b.name || b.bankName || `Bank #${idx + 1}`}
+                  {b.bankName || b.name || `Bank #${idx + 1}`}
                 </div>
 
                 <div style={{ opacity: 0.85, marginTop: 4 }}>
-                  {b.address || b.location || b.city || "No address"}
+                  {[b.city, b.location].filter(Boolean).join(" - ") ||
+                    "No address"}
                 </div>
 
                 <div style={{ marginTop: 6 }}>
-                  {b.phone || b.phoneNumber || b.mobile || "No phone"}
+                  {b.contactNumber ||
+                    b.phone ||
+                    b.phoneNumber ||
+                    b.mobile ||
+                    "No phone"}
                 </div>
               </div>
             ))}
@@ -213,11 +218,19 @@ function Home() {
         </div>
 
         <div className="social-login">
-          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://facebook.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <FontAwesomeIcon icon={faFacebook} className="face" />
           </a>
 
-          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://instagram.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <FontAwesomeIcon icon={faInstagram} className="insta" />
           </a>
 

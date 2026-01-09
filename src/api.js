@@ -1,5 +1,5 @@
 import axios from "axios";
 
 export default axios.create({
-  baseURL: "https://myprojectapi.runasp.net",
+  baseURL: "http://localhost:5240",
 });
