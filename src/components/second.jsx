@@ -35,24 +35,33 @@ function Second() {
       // ✅ Backend login
       const res = await api.post("/api/Users/login", {
         email: cleanEmail,
-        passwordHash: cleanPassword, // نفس اسم الحقل اللي الـ backend متوقعه عندك
+        passwordHash: cleanPassword,
       });
 
-      // ✅ احفظ user (اختياري بس مفيد)
+      // ✅ احفظ user + حالة الدخول
       const user = res?.data?.user;
       if (user) {
         localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("isLoggedIn", "true");
       }
 
-      // ✅ روح للـ welcome
       navigate("/welcome");
     } catch (err) {
-      // الرسالة اللي بتطلع من الباك في حالة 401
-      const msg =
+      // ✅ رسائل أوضح حسب نوع الخطأ
+      const backendMsg =
         err?.response?.data?.message ||
-        err?.response?.data?.title ||
-        "Login failed";
-      setErrorMsg(msg);
+        err?.response?.data?.title;
+
+      const validationErrors = err?.response?.data?.errors; // ASP.NET validation format
+
+      if (validationErrors) {
+        // نجمع أول رسالة من الـ errors
+        const firstKey = Object.keys(validationErrors)[0];
+        const firstMsg = validationErrors[firstKey]?.[0];
+        setErrorMsg(firstMsg || "Please check your inputs.");
+      } else {
+        setErrorMsg(backendMsg || "Login failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -73,6 +82,9 @@ function Second() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleLogin();
+              }}
             />
 
             <label className="label-pass">Password</label>
