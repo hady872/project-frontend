@@ -1,3 +1,5 @@
+// src/components/Three.jsx
+
 import { useState } from "react";
 import "../styles/random.scss";
 import "../styles/Three.scss";
@@ -9,6 +11,8 @@ import api from "../api";
 
 function Three() {
   const navigate = useNavigate();
+
+  const [accountType, setAccountType] = useState(""); // ✅ user | hospital
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -22,6 +26,9 @@ function Three() {
   const handleSignUp = async () => {
     setError("");
 
+    // ✅ لازم يختار نوع الحساب
+    if (!accountType) return setError("Please choose account type (User or Hospital)");
+
     // basic validation
     if (!fullName.trim()) return setError("Please enter your full name");
     if (!email.trim()) return setError("Please enter your email");
@@ -32,11 +39,14 @@ function Three() {
 
     try {
       await api.post("/api/Users/register", {
+        accountType, // ✅ الجديد
+
         fullName: fullName.trim(),
         email: email.trim(),
         passwordHash: password,
 
-        // required by backend validations
+        // ✅ لحد ما نعمل صفحة Profile/Edit لاحقًا
+        // (بنحط قيم افتراضية عشان validations في الباك)
         city: "Cairo",
         phone: "01000000000",
         bloodType: "A+",
@@ -44,9 +54,9 @@ function Three() {
         otps: [],
       });
 
+      // ✅ هيروح /welcome -> redirect حسب accountType
       navigate("/welcome");
     } catch (err) {
-      // show real backend message if available
       const backendMsg =
         err?.response?.data?.message ||
         (typeof err?.response?.data === "string" ? err.response.data : null);
@@ -64,6 +74,34 @@ function Three() {
         <div className="side">
           <div className="right-side">
             <h1 className="head-right">sign up</h1>
+
+            {/* ✅ Account Type (إجباري) */}
+            <label className="label-x">Account Type</label>
+            <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+              <button
+                type="button"
+                onClick={() => setAccountType("user")}
+                className="red-btn btn"
+                style={{
+                  flex: 1,
+                  opacity: accountType === "user" ? 1 : 0.6,
+                }}
+              >
+                User
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAccountType("hospital")}
+                className="red-btn btn"
+                style={{
+                  flex: 1,
+                  opacity: accountType === "hospital" ? 1 : 0.6,
+                }}
+              >
+                Hospital
+              </button>
+            </div>
 
             <label className="label-x">Full Name</label>
             <input

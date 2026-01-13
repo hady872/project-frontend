@@ -1,12 +1,14 @@
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
-import './App.css';
-import First from './components/First';
-import Second from './components/second';
+import "./App.css";
+
+import First from "./components/First";
+import Second from "./components/second";
 import Three from "./components/Three";
 import Four from "./components/Four";
 import Five from "./components/Five";
 import Six from "./components/six";
+
 import Home from "./components/Home";
 import About from "./components/About";
 import Faq from "./components/Faq";
@@ -18,77 +20,98 @@ import Donation from "./components/Donation";
 import Emergency from "./components/Emergency";
 import Request from "./components/Request";
 import Map from "./components/Map";
+
 //--------------------------------------------------------------
 function App() {
   return (
     <div className="App">
       <Routes>
-        <Route path="/" element={<First />}></Route>
-        <Route path="/login" element={<Second />}></Route>
-        <Route path="/SignUp" element={<Three />}></Route>
-        <Route path="/Forget" element={<Four />}></Route>
-        <Route path="/otp" element={<Five/>}></Route>
-        <Route path="/Reset" element={<Six />}></Route>
+        <Route path="/" element={<First />} />
+        <Route path="/login" element={<Second />} />
+        <Route path="/SignUp" element={<Three />} />
+        <Route path="/Forget" element={<Four />} />
+        <Route path="/otp" element={<Five />} />
+        <Route path="/Reset" element={<Six />} />
+
+        {/* ✅ User Home */}
         <Route
-  path="/home"
-  element={
-    <ProtectedRoute>
-      <Home />
-    </ProtectedRoute>
-  }
-/>
-        <Route path="/about" element={<About/>}></Route>
-        <Route path="/faq" element={<Faq/>}></Route>
+          path="/home"
+          element={
+            <ProtectedRoute allow={["user"]}>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="/about" element={<About />} />
+        <Route path="/faq" element={<Faq />} />
+
         <Route
-  path="/Welcome"
-  element={
-    <ProtectedRoute>
-      <Welcome />
-    </ProtectedRoute>
-  }
-/>
-        <Route path="/aftermap" element={<AfterMap/>}></Route>
-        <Route path="/book" element={<Book/>}></Route>
+          path="/Welcome"
+          element={
+            <ProtectedRoute allow={["user", "hospital"]}>
+              <Welcome />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="/aftermap" element={<AfterMap />} />
+
         <Route
-  path="/profile"
-  element={
-    <ProtectedRoute>
-      <Profile />
-    </ProtectedRoute>
-  }
-/>
+          path="/book"
+          element={
+            <ProtectedRoute allow={["user"]}>
+              <Book />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
-  path="/donation"
-  element={
-    <ProtectedRoute>
-      <Donation />
-    </ProtectedRoute>
-  }
-/>
+          path="/profile"
+          element={
+            <ProtectedRoute allow={["user", "hospital"]}>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
-  path="/emergency"
-  element={
-    <ProtectedRoute>
-      <Emergency />
-    </ProtectedRoute>
-  }
-/>
+          path="/donation"
+          element={
+            <ProtectedRoute allow={["user"]}>
+              <Donation />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ✅ Hospital Request Form */}
         <Route
-  path="/request"
-  element={
-    <ProtectedRoute>
-      <Request />
-    </ProtectedRoute>
-  }
-/>
+          path="/emergency"
+          element={
+            <ProtectedRoute allow={["hospital"]}>
+              <Emergency />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ✅ User Requests List (Donate/Call) */}
         <Route
-  path="/map"
-  element={
-    <ProtectedRoute>
-      <Map />
-    </ProtectedRoute>
-  }
-/>
+          path="/request"
+          element={
+            <ProtectedRoute allow={["user"]}>
+              <Request />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/map"
+          element={
+            <ProtectedRoute allow={["user", "hospital"]}>
+              <Map />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </div>
   );

@@ -1,13 +1,28 @@
+// src/components/Profile.jsx
+
 import React, { useEffect, useState } from "react";
 import "../styles/Profile.scss";
 import logo from "../pics/848.jpg";
 import Navbar from "./Navbar";
 import api from "../api";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
+  const navigate = useNavigate();
+
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const handleLogout = () => {
+    const ok = window.confirm("Are you sure you want to log out?");
+    if (!ok) return;
+
+    localStorage.removeItem("user");
+    localStorage.removeItem("isLoggedIn");
+
+    navigate("/login", { replace: true });
+  };
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -88,6 +103,23 @@ const Profile = () => {
                   <p>
                     <strong>Address:</strong> {userData?.city || "—"}
                   </p>
+                </div>
+
+                {/* LOG OUT BUTTON */}
+                <div style={{ marginTop: "14px" }}>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    style={{
+                      padding: "10px 16px",
+                      borderRadius: "10px",
+                      border: "none",
+                      cursor: "pointer",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Log out
+                  </button>
                 </div>
               </div>
             </div>

@@ -56,9 +56,29 @@ const data = [
 ];
 
 const BloodCards = () => {
+  // ✅ نعرف نوع الحساب من localStorage
+  let accountType = "";
+  try {
+    const u = JSON.parse(localStorage.getItem("user") || "{}");
+    accountType = (u?.accountType || "").toLowerCase().trim();
+  } catch {
+    accountType = "";
+  }
+
+  const isHospital = accountType === "hospital";
+  const isUser = accountType === "user";
+
   return (
     <div>
       <Navbar />
+
+      {/* ✅ تنبيه بسيط للمستشفى (بدون ما نغير أي routing) */}
+      {isHospital ? (
+        <p style={{ padding: "12px 16px", margin: 0, opacity: 0.85 }}>
+          Hospital view: requests list (Donate/Call buttons are hidden)
+        </p>
+      ) : null}
+
       <div className="cards-container">
         {data.map((item, idx) => (
           <div className={`card ${item.color}`} key={idx}>
@@ -68,8 +88,23 @@ const BloodCards = () => {
             <p>{item.distance}</p>
             <p>{item.time}</p>
 
-            <a href='https://wa.me/qr/MX4YRCWCOB5YJ1' className="call-btn">Call now</a>
-            <Link to='/book' className="donate-btn">Donate now</Link>
+            {/* ✅ الأزرار تظهر للمستخدم فقط */}
+            {isUser ? (
+              <>
+                <a
+                  href="https://wa.me/qr/MX4YRCWCOB5YJ1"
+                  className="call-btn"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Call now
+                </a>
+
+                <Link to="/book" className="donate-btn">
+                  Donate now
+                </Link>
+              </>
+            ) : null}
           </div>
         ))}
       </div>

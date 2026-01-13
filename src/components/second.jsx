@@ -1,3 +1,5 @@
+// src/components/second.jsx
+
 import "../styles/Second.scss";
 import "../styles/random.scss";
 import PicOne from "../pics/01.JPG";
@@ -8,7 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebook, faInstagram, faGoogle } from "@fortawesome/free-brands-svg-icons";
 
 import logo from "../pics/logo.png";
-import api from "../api"; // ✅ مهم
+import api from "../api";
 
 function Second() {
   const navigate = useNavigate();
@@ -32,30 +34,44 @@ function Second() {
 
     setLoading(true);
     try {
-      // ✅ Backend login
       const res = await api.post("/api/Users/login", {
         email: cleanEmail,
         passwordHash: cleanPassword,
       });
 
-      // ✅ احفظ user + حالة الدخول
       const user = res?.data?.user;
-      if (user) {
-        localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("isLoggedIn", "true");
+
+      if (!user) {
+        setErrorMsg("Login failed: user data not returned");
+        return;
       }
 
-      navigate("/welcome");
+      // ✅ خزن البيانات
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("isLoggedIn", "true");
+
+      // ✅ اقرأ نوع الحساب بأي اسم ممكن ييجي من الباك
+      const rawAccountType = user.accountType ?? user.AccountType ?? "";
+      const accountType = String(rawAccountType).toLowerCase();
+
+      // ✅ Debug واضح
+      console.log("LOGIN RESPONSE USER:", user);
+      console.log("ACCOUNT TYPE:", accountType);
+
+      // ✅ تحويل حسب نوع الحساب
+      if (accountType === "hospital") {
+        navigate("/emergency");
+      } else {
+        navigate("/home");
+      }
     } catch (err) {
-      // ✅ رسائل أوضح حسب نوع الخطأ
       const backendMsg =
         err?.response?.data?.message ||
         err?.response?.data?.title;
 
-      const validationErrors = err?.response?.data?.errors; // ASP.NET validation format
+      const validationErrors = err?.response?.data?.errors;
 
       if (validationErrors) {
-        // نجمع أول رسالة من الـ errors
         const firstKey = Object.keys(validationErrors)[0];
         const firstMsg = validationErrors[firstKey]?.[0];
         setErrorMsg(firstMsg || "Please check your inputs.");
