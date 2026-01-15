@@ -1,3 +1,4 @@
+// src/components/Navbar.jsx
 import React, { useMemo } from "react";
 import "../styles/Navbar.scss";
 import logo from "../pics/logo.png";
@@ -58,8 +59,10 @@ const Navbar = () => {
         <li>
           <NavLink to="/about">About</NavLink>
         </li>
+
+        {/* ✅ User: FAQ | ✅ Hospital: My Requests (نفس route /faq) */}
         <li>
-          <NavLink to="/faq">FAQ</NavLink>
+          <NavLink to="/faq">{isHospital ? "My Requests" : "FAQ"}</NavLink>
         </li>
       </ul>
 

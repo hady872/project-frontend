@@ -1,3 +1,4 @@
+// src/components/Request.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import "../styles/Request.scss";
@@ -55,6 +56,15 @@ const data = [
   },
 ];
 
+// "+O" => "O+" , "-A" => "A-" , "+AB" => "AB+"
+function normalizeBloodType(t) {
+  if (!t || typeof t !== "string") return "";
+  const s = t.trim().toUpperCase();
+  if (s.startsWith("+")) return `${s.slice(1)}+`;
+  if (s.startsWith("-")) return `${s.slice(1)}-`;
+  return s; // لو أصلاً مكتوب "O+" مثلاً
+}
+
 const BloodCards = () => {
   // ✅ نعرف نوع الحساب من localStorage
   let accountType = "";
@@ -72,7 +82,7 @@ const BloodCards = () => {
     <div>
       <Navbar />
 
-      {/* ✅ تنبيه بسيط للمستشفى (بدون ما نغير أي routing) */}
+      {/* ✅ تنبيه بسيط للمستشفى */}
       {isHospital ? (
         <p style={{ padding: "12px 16px", margin: 0, opacity: 0.85 }}>
           Hospital view: requests list (Donate/Call buttons are hidden)
@@ -80,33 +90,46 @@ const BloodCards = () => {
       ) : null}
 
       <div className="cards-container">
-        {data.map((item, idx) => (
-          <div className={`card ${item.color}`} key={idx}>
-            <h3>{item.hospital}</h3>
-            <p className="type">{item.type}</p>
-            <p>{item.level}</p>
-            <p>{item.distance}</p>
-            <p>{item.time}</p>
+        {data.map((item, idx) => {
+          const normalizedType = normalizeBloodType(item.type);
 
-            {/* ✅ الأزرار تظهر للمستخدم فقط */}
-            {isUser ? (
-              <>
-                <a
-                  href="https://wa.me/qr/MX4YRCWCOB5YJ1"
-                  className="call-btn"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Call now
-                </a>
+          return (
+            <div className={`card ${item.color}`} key={idx}>
+              <h3>{item.hospital}</h3>
+              <p className="type">{item.type}</p>
+              <p>{item.level}</p>
+              <p>{item.distance}</p>
+              <p>{item.time}</p>
 
-                <Link to="/book" className="donate-btn">
-                  Donate now
-                </Link>
-              </>
-            ) : null}
-          </div>
-        ))}
+              {/* ✅ الأزرار تظهر للمستخدم فقط */}
+              {isUser ? (
+                <>
+                  <a
+                    href="https://wa.me/qr/MX4YRCWCOB5YJ1"
+                    className="call-btn"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Call now
+                  </a>
+
+                  {/* ✅ نبعت bloodType للـ /book */}
+                  <Link
+                    to="/book"
+                    state={{
+                      bloodType: normalizedType,
+                      hospital: item.hospital,
+                      urgency: item.level,
+                    }}
+                    className="donate-btn"
+                  >
+                    Donate now
+                  </Link>
+                </>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

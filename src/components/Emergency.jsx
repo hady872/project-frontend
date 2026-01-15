@@ -1,10 +1,13 @@
+// src/components/Emergency.jsx
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "../styles/Emergency.scss";
 import Navbar from "./Navbar";
 //--------------------------------------------------------
 
 const RequestForm = () => {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     hospital: "",
     amount: "",
@@ -15,6 +18,7 @@ const RequestForm = () => {
   });
 
   const [errors, setErrors] = useState({});
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
@@ -22,27 +26,49 @@ const RequestForm = () => {
 
   const validate = () => {
     const err = {};
-    if (!form.hospital) err.hospital = "Required";
-    if (!form.amount) err.amount = "Required";
-    if (!form.contact) err.contact = "Required";
-    if (!form.location) err.location = "Required";
+    if (!form.hospital.trim()) err.hospital = "Required";
+    if (!String(form.amount).trim()) err.amount = "Required";
+    if (!form.contact.trim()) err.contact = "Required";
+    if (!form.location.trim()) err.location = "Required";
     if (!form.bloodType) err.bloodType = "Choose blood type";
     if (!form.urgency) err.urgency = "Choose urgency";
+
     setErrors(err);
     return Object.keys(err).length === 0;
   };
 
   const onSubmit = (e) => {
     e.preventDefault();
+
     if (!validate()) return;
-    console.log("submit", form);
-    alert("Request submitted!");
+
+    // ✅ احفظ الطلب في localStorage (مؤقتًا)
+    const newRequest = {
+      ...form,
+      // timestamp بسيط (مفيد للعرض)
+      createdAt: new Date().toLocaleString(),
+    };
+
+    try {
+      const raw = localStorage.getItem("hospitalRequests");
+      const arr = raw ? JSON.parse(raw) : [];
+      const safeArr = Array.isArray(arr) ? arr : [];
+
+      safeArr.push(newRequest);
+      localStorage.setItem("hospitalRequests", JSON.stringify(safeArr));
+    } catch {
+      // لو حصل مشكلة في JSON
+      localStorage.setItem("hospitalRequests", JSON.stringify([newRequest]));
+    }
+
+    // ✅ روح لصفحة My Requests (FAQ للمستشفى)
+    navigate("/faq");
   };
 
   return (
     <div className="request-page">
+      <Navbar />
 
-      <Navbar/>
       <main className="form-area">
         <h1 className="title">Request form</h1>
 
@@ -57,7 +83,9 @@ const RequestForm = () => {
               className="input-pill"
               placeholder="Enter Hospital Name"
             />
-            {errors.hospital && <small className="err">{errors.hospital}</small>}
+            {errors.hospital && (
+              <small className="err">{errors.hospital}</small>
+            )}
 
             <label className="field-label">Amount</label>
             <input
@@ -77,7 +105,9 @@ const RequestForm = () => {
               className="input-pill"
               placeholder="Enter your email or number"
             />
-            {errors.contact && <small className="err">{errors.contact}</small>}
+            {errors.contact && (
+              <small className="err">{errors.contact}</small>
+            )}
 
             <label className="field-label">Location</label>
             <input
@@ -87,7 +117,9 @@ const RequestForm = () => {
               className="input-pill"
               placeholder="Enter hospital location"
             />
-            {errors.location && <small className="err">{errors.location}</small>}
+            {errors.location && (
+              <small className="err">{errors.location}</small>
+            )}
           </div>
 
           {/* RIGHT COLUMN */}
@@ -95,27 +127,41 @@ const RequestForm = () => {
             <div className="box blood-box">
               <p className="box-title">Blood Type</p>
               <div className="grid-blood">
-                {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bt) => (
-                  <label key={bt} className={`radio-pill ${form.bloodType === bt ? "active" : ""}`}>
-                    <input
-                      type="radio"
-                      name="bloodType"
-                      value={bt}
-                      checked={form.bloodType === bt}
-                      onChange={handleChange}
-                    />
-                    <span className="bt-text">{bt}</span>
-                  </label>
-                ))}
+                {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
+                  (bt) => (
+                    <label
+                      key={bt}
+                      className={`radio-pill ${
+                        form.bloodType === bt ? "active" : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="bloodType"
+                        value={bt}
+                        checked={form.bloodType === bt}
+                        onChange={handleChange}
+                      />
+                      <span className="bt-text">{bt}</span>
+                    </label>
+                  )
+                )}
               </div>
-              {errors.bloodType && <small className="err">{errors.bloodType}</small>}
+              {errors.bloodType && (
+                <small className="err">{errors.bloodType}</small>
+              )}
             </div>
 
             <div className="box urgency-box">
               <p className="box-title">Urgency Level</p>
               <div className="urgency-list">
                 {["high", "medium", "low"].map((u) => (
-                  <label key={u} className={`urgency-pill ${form.urgency === u ? "active" : ""}`}>
+                  <label
+                    key={u}
+                    className={`urgency-pill ${
+                      form.urgency === u ? "active" : ""
+                    }`}
+                  >
                     <input
                       type="radio"
                       name="urgency"
@@ -127,18 +173,19 @@ const RequestForm = () => {
                   </label>
                 ))}
               </div>
-              {errors.urgency && <small className="err">{errors.urgency}</small>}
+              {errors.urgency && (
+                <small className="err">{errors.urgency}</small>
+              )}
             </div>
           </div>
 
-          {/* Submit button centered under columns */}
+          {/* ✅ Submit button (حقيقي) */}
           <div className="submit-wrap">
-            <Link to='/donation' type="submit" className="submit-btn">
+            <button type="submit" className="submit-btn">
               Submit Request
-            </Link>
+            </button>
           </div>
         </form>
-
       </main>
     </div>
   );
