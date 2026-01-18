@@ -22,6 +22,9 @@ import Emergency from "./components/Emergency";
 import Request from "./components/Request";
 import Map from "./components/Map";
 
+// ✅ NEW
+import Donors from "./components/Donors";
+
 //--------------------------------------------------------------
 function App() {
   return (
@@ -91,6 +94,16 @@ function App() {
           element={
             <ProtectedRoute allow={["hospital"]}>
               <Emergency />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ✅ Hospital Donors Page */}
+        <Route
+          path="/donors"
+          element={
+            <ProtectedRoute allow={["hospital"]}>
+              <Donors />
             </ProtectedRoute>
           }
         />

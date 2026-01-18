@@ -52,6 +52,11 @@ const Navbar = () => {
                 Request Form
               </NavLink>
             </li>
+
+            {/* ✅ NEW: Donors page for hospital */}
+            <li>
+              <NavLink to="/donors">Donors</NavLink>
+            </li>
           </>
         )}
 
