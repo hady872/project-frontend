@@ -1,4 +1,5 @@
 // src/components/Book.jsx
+
 import React, { useEffect, useMemo, useState } from "react";
 import "../styles/Book.scss";
 import Navbar from "./Navbar";
@@ -86,8 +87,76 @@ function BookDonation() {
     localStorage.setItem("userBookings", JSON.stringify(arr));
   };
 
+  // ✅ نربط الحجز بطلب المستشفى (hospitalRequests)
+  const loadHospitalRequests = () => {
+    try {
+      const raw = localStorage.getItem("hospitalRequests");
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const saveHospitalRequests = (arr) => {
+    localStorage.setItem("hospitalRequests", JSON.stringify(arr));
+  };
+
+  const normalize = (v) => String(v || "").toLowerCase().trim();
+
+  const linkBookingToHospitalRequest = (newBooking) => {
+    // لو مش جاي من Requests أصلاً، مفيش حاجة نربطها
+    if (!preselectedHospital || !preselectedBloodType) return;
+
+    const reqs = loadHospitalRequests();
+    if (reqs.length === 0) return;
+
+    const h = normalize(preselectedHospital);
+    const bt = normalize(preselectedBloodType);
+    const urg = normalize(preselectedUrgency);
+
+    // هنختار "أقرب طلب" بنفس hospital/bloodType/urgency (ولو urgency مش موجود نسمح بالماتش بدونها)
+    // ونفضل الأحدث
+    const candidates = reqs
+      .map((r, i) => ({ r, i }))
+      .filter(({ r }) => {
+        const sameHospital = normalize(r?.hospital) === h;
+        const sameBlood = normalize(r?.bloodType) === bt;
+        const sameUrgency = urg ? normalize(r?.urgency) === urg : true;
+        return sameHospital && sameBlood && sameUrgency;
+      });
+
+    if (candidates.length === 0) return;
+
+    // اختار الأحدث بالـ createdAt (لو موجود) وإلا آخر واحد
+    candidates.sort((a, b) => {
+      const ta = new Date(a?.r?.createdAt || 0).getTime();
+      const tb = new Date(b?.r?.createdAt || 0).getTime();
+      return tb - ta;
+    });
+
+    const targetIndex = candidates[0].i;
+    const target = reqs[targetIndex];
+    if (!target) return;
+
+    const donation = {
+      ownerUserID: newBooking.ownerUserID, // صاحب الحساب
+      donorName: newBooking.donorName,
+      phone: newBooking.phone,
+      day: newBooking.day,
+      clock: newBooking.clock,
+      bookedAt: newBooking.createdAt,
+    };
+
+    const prev = Array.isArray(target.donations) ? target.donations : [];
+    target.donations = [...prev, donation];
+
+    reqs[targetIndex] = target;
+    saveHospitalRequests(reqs);
+  };
+
   const validate = () => {
-    // 최소 مطلوبات عشان ما نعقّدهاش
     if (!centerName.trim()) return "Please enter a center.";
     if (!selectedBlood) return "Please select a blood type.";
     if (!fullName.trim()) return "Please enter full name.";
@@ -149,6 +218,9 @@ function BookDonation() {
     const all = loadBookings();
     all.push(newBooking);
     saveBookings(all);
+
+    // ✅ اربط الحجز بطلب المستشفى (يضيف donation داخل hospitalRequests)
+    linkBookingToHospitalRequest(newBooking);
 
     // بعد الحفظ → روح للبروفايل عشان تشوفها ظهرت
     navigate("/profile", { replace: true });
@@ -231,7 +303,6 @@ function BookDonation() {
           <div className="section">
             <label>Blood Type</label>
 
-            {/* لو جاي من Request: نوضح للمستخدم إن النوع متحدد تلقائياً */}
             {lockBloodType ? (
               <p style={{ marginTop: 6, marginBottom: 10, opacity: 0.85 }}>
                 Blood type is pre-selected from the request:{" "}
@@ -357,7 +428,6 @@ function BookDonation() {
             </div>
           </div>
 
-          {/* بدل Link: submit حقيقي */}
           <button type="submit" className="confirm-btn">
             Confirm
           </button>

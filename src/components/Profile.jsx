@@ -17,6 +17,14 @@ const Profile = () => {
   // ===== Bookings state (from localStorage) =====
   const [bookings, setBookings] = useState([]);
 
+  // ===== Edit state =====
+  const [editingKey, setEditingKey] = useState(null);
+  const [editDonorName, setEditDonorName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editDay, setEditDay] = useState("");
+  const [editClock, setEditClock] = useState("");
+  const [editError, setEditError] = useState("");
+
   const loggedUser = useMemo(() => {
     try {
       const raw = localStorage.getItem("user");
@@ -39,41 +47,46 @@ const Profile = () => {
     navigate("/login", { replace: true });
   };
 
-  const loadBookingsForThisUser = () => {
+  // ===== localStorage helpers =====
+  const readAllBookings = () => {
     try {
       const raw = localStorage.getItem("userBookings");
-      if (!raw) {
-        setBookings([]);
-        return;
-      }
+      if (!raw) return [];
       const arr = JSON.parse(raw);
-      if (!Array.isArray(arr)) {
-        setBookings([]);
-        return;
-      }
-
-      const mine = ownerUserID
-        ? arr.filter((b) => String(b?.ownerUserID) === String(ownerUserID))
-        : [];
-
-      // الأحدث فوق
-      mine.sort((a, b) => {
-        const ta = new Date(a?.createdAt || 0).getTime();
-        const tb = new Date(b?.createdAt || 0).getTime();
-        return tb - ta;
-      });
-
-      setBookings(mine);
+      return Array.isArray(arr) ? arr : [];
     } catch {
-      setBookings([]);
+      return [];
     }
+  };
+
+  const writeAllBookings = (arr) => {
+    localStorage.setItem("userBookings", JSON.stringify(arr));
+  };
+
+  // مفتاح ثابت للحجز (لو عندك bookingId مستقبلاً هنستعمله)
+  const bookingKey = (b) => String(b?.bookingId || b?.createdAt || "");
+
+  const loadBookingsForThisUser = () => {
+    const arr = readAllBookings();
+
+    const mine = ownerUserID
+      ? arr.filter((b) => String(b?.ownerUserID) === String(ownerUserID))
+      : [];
+
+    // الأحدث فوق
+    mine.sort((a, b) => {
+      const ta = new Date(a?.createdAt || 0).getTime();
+      const tb = new Date(b?.createdAt || 0).getTime();
+      return tb - ta;
+    });
+
+    setBookings(mine);
   };
 
   useEffect(() => {
     const loadProfile = async () => {
       setErrorMsg("");
 
-      // 1) اقرأ اليوزر من localStorage
       const userStr = localStorage.getItem("user");
       if (!userStr) {
         setErrorMsg("No user found. Please login again.");
@@ -84,13 +97,12 @@ const Profile = () => {
       let userObj = null;
       try {
         userObj = JSON.parse(userStr);
-      } catch (e) {
+      } catch {
         setErrorMsg("Corrupted user data. Please login again.");
         setLoading(false);
         return;
       }
 
-      // 2) خد الـ ID (عندك في الباك اسمه UserID)
       const userId = userObj?.userID;
       if (!userId) {
         setErrorMsg("UserID is missing. Please login again.");
@@ -98,7 +110,6 @@ const Profile = () => {
         return;
       }
 
-      // 3) نجيب بيانات البروفايل من الباك
       try {
         const res = await api.get(`/api/Users/profile/${userId}`);
         setUserData(res.data);
@@ -129,12 +140,81 @@ const Profile = () => {
     return d.toLocaleString();
   };
 
+  // ===== Delete booking =====
+  const deleteBooking = (key) => {
+    const ok = window.confirm("Are you sure you want to delete this booking?");
+    if (!ok) return;
+
+    const all = readAllBookings();
+    const updated = all.filter((b) => {
+      // نحذف حجز واحد يخص نفس صاحب الحساب ونفس المفتاح
+      const sameOwner = String(b?.ownerUserID) === String(ownerUserID);
+      const sameKey = bookingKey(b) === String(key);
+      return !(sameOwner && sameKey);
+    });
+
+    writeAllBookings(updated);
+    loadBookingsForThisUser();
+  };
+
+  // ===== Edit booking =====
+  const startEdit = (b) => {
+    setEditError("");
+    const key = bookingKey(b);
+    setEditingKey(key);
+
+    setEditDonorName(String(b?.donorName || ""));
+    setEditPhone(String(b?.phone || ""));
+    setEditDay(String(b?.day || ""));
+    setEditClock(String(b?.clock || ""));
+  };
+
+  const cancelEdit = () => {
+    setEditError("");
+    setEditingKey(null);
+    setEditDonorName("");
+    setEditPhone("");
+    setEditDay("");
+    setEditClock("");
+  };
+
+  const saveEdit = (key) => {
+    setEditError("");
+
+    if (!editDonorName.trim()) return setEditError("Please enter donor name.");
+    if (!editPhone.trim()) return setEditError("Please enter phone number.");
+    if (!editDay) return setEditError("Please select day.");
+    if (!editClock) return setEditError("Please select time.");
+
+    const all = readAllBookings();
+
+    const updated = all.map((b) => {
+      const sameOwner = String(b?.ownerUserID) === String(ownerUserID);
+      const sameKey = bookingKey(b) === String(key);
+
+      if (!sameOwner || !sameKey) return b;
+
+      return {
+        ...b,
+        donorName: editDonorName.trim(),
+        phone: editPhone.trim(),
+        day: editDay,
+        clock: editClock,
+        // optional timestamp for tracking edits
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    writeAllBookings(updated);
+    loadBookingsForThisUser();
+    cancelEdit();
+  };
+
   return (
     <div>
       <Navbar />
 
       <div className="profile-page">
-        {/* Loading / Error */}
         {loading ? (
           <p style={{ padding: "20px", color: "#fff" }}>Loading profile...</p>
         ) : errorMsg ? (
@@ -163,7 +243,6 @@ const Profile = () => {
                   </p>
                 </div>
 
-                {/* LOG OUT BUTTON */}
                 <div style={{ marginTop: "14px" }}>
                   <button
                     type="button"
@@ -187,81 +266,237 @@ const Profile = () => {
               <h3>Bookings From This Account</h3>
 
               {bookings.length === 0 ? (
-                <p style={{ opacity: 0.85, marginTop: 10 }}>
-                  No bookings yet.
-                </p>
+                <p style={{ opacity: 0.85, marginTop: 10 }}>No bookings yet.</p>
               ) : (
                 <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
-                  {bookings.map((b, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: 14,
-                        borderRadius: 12,
-                        background: "rgba(255,255,255,0.06)",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                      }}
-                    >
+                  {bookings.map((b, idx) => {
+                    const key = bookingKey(b) || String(idx);
+                    const isEditing = editingKey === key;
+
+                    return (
                       <div
+                        key={key}
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          flexWrap: "wrap",
-                          gap: 10,
+                          padding: 14,
+                          borderRadius: 12,
+                          background: "rgba(255,255,255,0.06)",
+                          border: "1px solid rgba(255,255,255,0.08)",
                         }}
                       >
-                        <div>
-                          <strong>Donor Name:</strong> {b?.donorName || "—"}
-                        </div>
-                        <div>
-                          <strong>Blood Type:</strong> {b?.bloodType || "—"}
-                        </div>
-                        <div>
-                          <strong>Phone:</strong> {b?.phone || "—"}
-                        </div>
-                      </div>
+                        {/* Top row: actions */}
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                            gap: 10,
+                          }}
+                        >
+                          <div style={{ opacity: 0.9 }}>
+                            <strong>Booking #{idx + 1}</strong>
+                          </div>
 
-                      <div style={{ marginTop: 8, opacity: 0.95 }}>
-                        <div>
-                          <strong>Center:</strong> {b?.center || "—"}{" "}
-                          {b?.urgency ? (
-                            <>
-                              {" "}
-                              | <strong>Urgency:</strong> {b.urgency}
-                            </>
+                          {!isEditing ? (
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button
+                                type="button"
+                                onClick={() => startEdit(b)}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: 10,
+                                  border: "none",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Edit
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => deleteBooking(key)}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: 10,
+                                  border: "none",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button
+                                type="button"
+                                onClick={() => saveEdit(key)}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: 10,
+                                  border: "none",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Save
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={cancelEdit}
+                                style={{
+                                  padding: "8px 12px",
+                                  borderRadius: 10,
+                                  border: "none",
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        {isEditing && editError ? (
+                          <p style={{ marginTop: 10, color: "salmon" }}>
+                            {editError}
+                          </p>
+                        ) : null}
+
+                        {/* Main info */}
+                        <div style={{ marginTop: 10, opacity: 0.95 }}>
+                          {/* Donor / Blood / Phone */}
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              flexWrap: "wrap",
+                              gap: 10,
+                            }}
+                          >
+                            <div>
+                              <strong>Donor Name:</strong>{" "}
+                              {!isEditing ? (
+                                b?.donorName || "—"
+                              ) : (
+                                <input
+                                  value={editDonorName}
+                                  onChange={(e) => setEditDonorName(e.target.value)}
+                                  style={{
+                                    marginLeft: 8,
+                                    padding: "6px 8px",
+                                    borderRadius: 8,
+                                    border: "1px solid rgba(255,255,255,0.2)",
+                                    background: "transparent",
+                                    color: "inherit",
+                                  }}
+                                />
+                              )}
+                            </div>
+
+                            <div>
+                              <strong>Blood Type:</strong> {b?.bloodType || "—"}
+                            </div>
+
+                            <div>
+                              <strong>Phone:</strong>{" "}
+                              {!isEditing ? (
+                                b?.phone || "—"
+                              ) : (
+                                <input
+                                  value={editPhone}
+                                  onChange={(e) => setEditPhone(e.target.value)}
+                                  style={{
+                                    marginLeft: 8,
+                                    padding: "6px 8px",
+                                    borderRadius: 8,
+                                    border: "1px solid rgba(255,255,255,0.2)",
+                                    background: "transparent",
+                                    color: "inherit",
+                                  }}
+                                />
+                              )}
+                            </div>
+                          </div>
+
+                          <div style={{ marginTop: 8 }}>
+                            <strong>Center:</strong> {b?.center || "—"}{" "}
+                            {b?.urgency ? (
+                              <>
+                                {" "}
+                                | <strong>Urgency:</strong> {b.urgency}
+                              </>
+                            ) : null}
+                          </div>
+
+                          <div style={{ marginTop: 6 }}>
+                            <strong>Day:</strong>{" "}
+                            {!isEditing ? (
+                              b?.day || "—"
+                            ) : (
+                              <input
+                                type="date"
+                                value={editDay}
+                                onChange={(e) => setEditDay(e.target.value)}
+                                style={{
+                                  marginLeft: 8,
+                                  padding: "6px 8px",
+                                  borderRadius: 8,
+                                  border: "1px solid rgba(255,255,255,0.2)",
+                                  background: "transparent",
+                                  color: "inherit",
+                                }}
+                              />
+                            )}{" "}
+                            {"  "}
+                            <strong>Clock:</strong>{" "}
+                            {!isEditing ? (
+                              b?.clock || "—"
+                            ) : (
+                              <input
+                                type="time"
+                                value={editClock}
+                                onChange={(e) => setEditClock(e.target.value)}
+                                style={{
+                                  marginLeft: 8,
+                                  padding: "6px 8px",
+                                  borderRadius: 8,
+                                  border: "1px solid rgba(255,255,255,0.2)",
+                                  background: "transparent",
+                                  color: "inherit",
+                                }}
+                              />
+                            )}{" "}
+                            {"  "}
+                            <strong>Weight:</strong> {String(b?.weight ?? "—")}{" "}
+                            {"  "}
+                            <strong>Birth Date:</strong> {b?.birthDate || "—"}
+                          </div>
+
+                          <div style={{ marginTop: 6 }}>
+                            <strong>Medications:</strong> {b?.medications || "—"}{" "}
+                            {"  "}
+                            <strong>Surgery:</strong> {b?.surgery || "—"}{" "}
+                            {"  "}
+                            <strong>Donated Before:</strong>{" "}
+                            {b?.donatedBefore || "—"}{" "}
+                            {"  "}
+                            <strong>Infection:</strong> {b?.infection || "—"}
+                          </div>
+
+                          {b?.createdAt ? (
+                            <div style={{ marginTop: 6, opacity: 0.8 }}>
+                              <strong>Created:</strong>{" "}
+                              {formatCreatedAt(b.createdAt)}
+                            </div>
                           ) : null}
                         </div>
-
-                        <div style={{ marginTop: 4 }}>
-                          <strong>Day:</strong> {b?.day || "—"}{" "}
-                          {"  "}
-                          <strong>Clock:</strong> {b?.clock || "—"}{" "}
-                          {"  "}
-                          <strong>Weight:</strong> {String(b?.weight ?? "—")}{" "}
-                          {"  "}
-                          <strong>Birth Date:</strong> {b?.birthDate || "—"}
-                        </div>
-
-                        <div style={{ marginTop: 6 }}>
-                          <strong>Medications:</strong> {b?.medications || "—"}{" "}
-                          {"  "}
-                          <strong>Surgery:</strong> {b?.surgery || "—"}{" "}
-                          {"  "}
-                          <strong>Donated Before:</strong>{" "}
-                          {b?.donatedBefore || "—"}{" "}
-                          {"  "}
-                          <strong>Infection:</strong> {b?.infection || "—"}
-                        </div>
-
-                        {b?.createdAt ? (
-                          <div style={{ marginTop: 6, opacity: 0.8 }}>
-                            <strong>Created:</strong>{" "}
-                            {formatCreatedAt(b.createdAt)}
-                          </div>
-                        ) : null}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

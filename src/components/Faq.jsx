@@ -97,13 +97,21 @@ const FAQ = () => {
     cancelEdit();
   };
 
-  // لو مستشفى: اعرض My Requests (كروت + Edit)
+  const formatBookedAt = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return String(iso);
+    return d.toLocaleString();
+  };
+
+  // لو مستشفى: اعرض My Requests (كروت + Edit + Donations)
   if (isHospital) {
     const displayList = myRequests.slice().reverse();
 
     return (
       <div className="faq-page hospital-requests">
         <Navbar />
+
         <div className="faq-content">
           {/* ✅ شيلنا عنوان My Requests اللي فوق الطلبات */}
 
@@ -113,6 +121,9 @@ const FAQ = () => {
             <div className="requests-grid">
               {displayList.map((r, idx) => {
                 const isEditing = editingIndex === idx;
+
+                const donations = Array.isArray(r?.donations) ? r.donations : [];
+                const donationsCount = donations.length;
 
                 return (
                   <div className="request-card" key={idx}>
@@ -216,6 +227,87 @@ const FAQ = () => {
                       {isEditing && editError ? (
                         <p className="edit-error">{editError}</p>
                       ) : null}
+
+                      {/* ===================== Donations ===================== */}
+                      <div
+                        style={{
+                          marginTop: 12,
+                          paddingTop: 10,
+                          borderTop: "1px solid rgba(0,0,0,0.08)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            gap: 10,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <strong>Donations</strong>
+                          <span style={{ opacity: 0.85 }}>
+                            Count: <b>{donationsCount}</b>
+                          </span>
+                        </div>
+
+                        {donationsCount === 0 ? (
+                          <p style={{ marginTop: 8, opacity: 0.8 }}>
+                            No donations yet.
+                          </p>
+                        ) : (
+                          <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                            {donations
+                              .slice()
+                              .sort((a, b) => {
+                                const ta = new Date(a?.bookedAt || 0).getTime();
+                                const tb = new Date(b?.bookedAt || 0).getTime();
+                                return tb - ta;
+                              })
+                              .map((d, di) => (
+                                <div
+                                  key={di}
+                                  style={{
+                                    padding: 10,
+                                    borderRadius: 10,
+                                    background: "rgba(0,0,0,0.03)",
+                                    border: "1px solid rgba(0,0,0,0.06)",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      flexWrap: "wrap",
+                                      gap: 10,
+                                    }}
+                                  >
+                                    <div>
+                                      <strong>Donor:</strong>{" "}
+                                      {d?.donorName || "—"}
+                                    </div>
+                                    <div>
+                                      <strong>Phone:</strong> {d?.phone || "—"}
+                                    </div>
+                                  </div>
+
+                                  <div style={{ marginTop: 6, opacity: 0.95 }}>
+                                    <strong>Day:</strong> {d?.day || "—"}{" "}
+                                    {"  "}
+                                    <strong>Clock:</strong> {d?.clock || "—"}
+                                  </div>
+
+                                  {d?.bookedAt ? (
+                                    <div style={{ marginTop: 6, opacity: 0.8 }}>
+                                      <strong>Booked:</strong>{" "}
+                                      {formatBookedAt(d.bookedAt)}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                      {/* ===================================================== */}
                     </div>
                   </div>
                 );
