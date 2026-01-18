@@ -19,9 +19,11 @@ const RequestForm = () => {
   }, []);
 
   const hospitalUserID = loggedHospital?.userID; // ✅ صاحب حساب المستشفى
+  const hospitalName =
+    (loggedHospital?.fullName || loggedHospital?.name || "Hospital").trim();
 
   const [form, setForm] = useState({
-    hospital: "",
+    patientName: "", // ✅ NEW
     amount: "",
     contact: "",
     location: "",
@@ -38,15 +40,19 @@ const RequestForm = () => {
 
   const validate = () => {
     const err = {};
-    if (!form.hospital.trim()) err.hospital = "Required";
+
+    if (!form.patientName.trim()) err.patientName = "Required"; // ✅ NEW
     if (!String(form.amount).trim()) err.amount = "Required";
     if (!form.contact.trim()) err.contact = "Required";
     if (!form.location.trim()) err.location = "Required";
     if (!form.bloodType) err.bloodType = "Choose blood type";
     if (!form.urgency) err.urgency = "Choose urgency";
 
-    // ✅ مهم: لازم يكون فعلاً داخل بحساب مستشفى
+    // ✅ لازم يكون فعلاً داخل بحساب مستشفى
     if (!hospitalUserID) err.hospitalUserID = "Please login as hospital again.";
+
+    // ✅ لازم يكون في اسم للمستشفى من الحساب
+    if (!hospitalName) err.hospitalName = "Hospital name is missing in account.";
 
     setErrors(err);
     return Object.keys(err).length === 0;
@@ -58,14 +64,18 @@ const RequestForm = () => {
 
   const onSubmit = (e) => {
     e.preventDefault();
-
     if (!validate()) return;
 
     const newRequest = {
-      requestId: makeRequestId(), // ✅ مهم لربط Donate بالطلب
-      hospitalUserID: String(hospitalUserID), // ✅ صاحب الطلب
+      requestId: makeRequestId(),
+      hospitalUserID: String(hospitalUserID),
 
-      hospital: form.hospital.trim(),
+      // ✅ اسم المستشفى ييجي تلقائي من الحساب (للعرض عند اليوزر)
+      hospitalName,
+
+      // ✅ اسم المريض (اللي محتاج الدم)
+      patientName: form.patientName.trim(),
+
       amount: Number(form.amount),
       contact: form.contact.trim(),
       location: form.location.trim(),
@@ -86,7 +96,6 @@ const RequestForm = () => {
       localStorage.setItem("hospitalRequests", JSON.stringify([newRequest]));
     }
 
-    // ✅ روح لصفحة My Requests (FAQ للمستشفى)
     navigate("/faq");
   };
 
@@ -100,15 +109,18 @@ const RequestForm = () => {
         <form className="request-form" onSubmit={onSubmit} noValidate>
           {/* LEFT COLUMN */}
           <div className="left-col">
-            <label className="field-label">Hospital</label>
+            {/* ✅ NEW: Patient Name */}
+            <label className="field-label">Patient Name</label>
             <input
-              name="hospital"
-              value={form.hospital}
+              name="patientName"
+              value={form.patientName}
               onChange={handleChange}
               className="input-pill"
-              placeholder="Enter Hospital Name"
+              placeholder="Enter patient name"
             />
-            {errors.hospital && <small className="err">{errors.hospital}</small>}
+            {errors.patientName && (
+              <small className="err">{errors.patientName}</small>
+            )}
 
             <label className="field-label">Amount</label>
             <input
@@ -139,11 +151,17 @@ const RequestForm = () => {
               className="input-pill"
               placeholder="Enter hospital location"
             />
-            {errors.location && <small className="err">{errors.location}</small>}
+            {errors.location && (
+              <small className="err">{errors.location}</small>
+            )}
 
             {/* ✅ لو مش داخل كمستشفى */}
             {errors.hospitalUserID ? (
               <small className="err">{errors.hospitalUserID}</small>
+            ) : null}
+
+            {errors.hospitalName ? (
+              <small className="err">{errors.hospitalName}</small>
             ) : null}
           </div>
 
@@ -155,7 +173,9 @@ const RequestForm = () => {
                 {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bt) => (
                   <label
                     key={bt}
-                    className={`radio-pill ${form.bloodType === bt ? "active" : ""}`}
+                    className={`radio-pill ${
+                      form.bloodType === bt ? "active" : ""
+                    }`}
                   >
                     <input
                       type="radio"
@@ -168,7 +188,9 @@ const RequestForm = () => {
                   </label>
                 ))}
               </div>
-              {errors.bloodType && <small className="err">{errors.bloodType}</small>}
+              {errors.bloodType && (
+                <small className="err">{errors.bloodType}</small>
+              )}
             </div>
 
             <div className="box urgency-box">
@@ -177,7 +199,9 @@ const RequestForm = () => {
                 {["high", "medium", "low"].map((u) => (
                   <label
                     key={u}
-                    className={`urgency-pill ${form.urgency === u ? "active" : ""}`}
+                    className={`urgency-pill ${
+                      form.urgency === u ? "active" : ""
+                    }`}
                   >
                     <input
                       type="radio"
@@ -190,7 +214,9 @@ const RequestForm = () => {
                   </label>
                 ))}
               </div>
-              {errors.urgency && <small className="err">{errors.urgency}</small>}
+              {errors.urgency && (
+                <small className="err">{errors.urgency}</small>
+              )}
             </div>
           </div>
 

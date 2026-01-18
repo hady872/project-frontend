@@ -25,6 +25,7 @@ const FAQ = () => {
   const [editingIndex, setEditingIndex] = useState(null);
   const [editAmount, setEditAmount] = useState("");
   const [editUrgency, setEditUrgency] = useState("");
+  const [editPatientName, setEditPatientName] = useState("");
   const [editError, setEditError] = useState("");
 
   const loadRequests = () => {
@@ -46,11 +47,12 @@ const FAQ = () => {
     loadRequests();
   }, [isHospital]);
 
-  const startEdit = (idx, currentAmount, currentUrgency) => {
+  const startEdit = (idx, currentAmount, currentUrgency, currentPatientName) => {
     setEditError("");
     setEditingIndex(idx);
     setEditAmount(String(currentAmount ?? ""));
     setEditUrgency(String(currentUrgency ?? "").toLowerCase());
+    setEditPatientName(String(currentPatientName ?? ""));
   };
 
   const cancelEdit = () => {
@@ -58,6 +60,7 @@ const FAQ = () => {
     setEditingIndex(null);
     setEditAmount("");
     setEditUrgency("");
+    setEditPatientName("");
   };
 
   const saveEdit = (idxInReversedList) => {
@@ -78,6 +81,13 @@ const FAQ = () => {
       return;
     }
 
+    // ✅ validate patient name (اختياري بس خلّيه لو موجود يكون محترم)
+    const pn = String(editPatientName || "").trim();
+    if (pn && pn.length < 2) {
+      setEditError("Patient name is too short.");
+      return;
+    }
+
     // لأننا بنعرض Reverse، فلازم نعدّل على النسخة الأصلية صح
     const original = myRequests.slice();
     const reversed = original.slice().reverse();
@@ -87,8 +97,29 @@ const FAQ = () => {
 
     target.amount = n;
     target.urgency = u;
+    target.patientName = pn; // ✅ NEW
 
     // رجّعها تاني للأصل
+    const updatedOriginal = reversed.slice().reverse();
+
+    localStorage.setItem("hospitalRequests", JSON.stringify(updatedOriginal));
+    setMyRequests(updatedOriginal);
+
+    cancelEdit();
+  };
+
+  // ✅ Delete request (مع مراعاة إن العرض Reverse)
+  const deleteRequest = (idxInReversedList) => {
+    const ok = window.confirm("Are you sure you want to delete this request?");
+    if (!ok) return;
+
+    const original = myRequests.slice();
+    const reversed = original.slice().reverse();
+
+    if (!reversed[idxInReversedList]) return;
+
+    reversed.splice(idxInReversedList, 1);
+
     const updatedOriginal = reversed.slice().reverse();
 
     localStorage.setItem("hospitalRequests", JSON.stringify(updatedOriginal));
@@ -104,7 +135,7 @@ const FAQ = () => {
     return d.toLocaleString();
   };
 
-  // لو مستشفى: اعرض My Requests (كروت + Edit + Donations)
+  // لو مستشفى: اعرض My Requests
   if (isHospital) {
     const displayList = myRequests.slice().reverse();
 
@@ -113,8 +144,6 @@ const FAQ = () => {
         <Navbar />
 
         <div className="faq-content">
-          {/* ✅ شيلنا عنوان My Requests اللي فوق الطلبات */}
-
           {displayList.length === 0 ? (
             <p className="empty-state">You have no requests yet.</p>
           ) : (
@@ -128,18 +157,26 @@ const FAQ = () => {
                 return (
                   <div className="request-card" key={idx}>
                     <div className="request-card__top">
-                      <h3 className="request-card__title">
-                        {r?.hospital || "Hospital"}
-                      </h3>
-
                       {!isEditing ? (
-                        <button
-                          type="button"
-                          className="btn btn-edit"
-                          onClick={() => startEdit(idx, r?.amount, r?.urgency)}
-                        >
-                          Edit
-                        </button>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            type="button"
+                            className="btn btn-edit"
+                            onClick={() =>
+                              startEdit(idx, r?.amount, r?.urgency, r?.patientName)
+                            }
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn btn-delete"
+                            onClick={() => deleteRequest(idx)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       ) : (
                         <div className="edit-actions">
                           <button
@@ -161,6 +198,24 @@ const FAQ = () => {
                     </div>
 
                     <div className="request-card__body">
+                      {/* ✅ Patient Name */}
+                      <div className="row">
+                        <span className="label">Patient</span>
+
+                        {!isEditing ? (
+                          <span className="value">{r?.patientName || "—"}</span>
+                        ) : (
+                          <div className="amount-edit">
+                            <input
+                              value={editPatientName}
+                              onChange={(e) => setEditPatientName(e.target.value)}
+                              className="amount-input"
+                              placeholder="Enter patient name"
+                            />
+                          </div>
+                        )}
+                      </div>
+
                       <div className="row">
                         <span className="label">Blood Type</span>
                         <span className="value">{r?.bloodType || "—"}</span>
@@ -282,8 +337,7 @@ const FAQ = () => {
                                     }}
                                   >
                                     <div>
-                                      <strong>Donor:</strong>{" "}
-                                      {d?.donorName || "—"}
+                                      <strong>Donor:</strong> {d?.donorName || "—"}
                                     </div>
                                     <div>
                                       <strong>Phone:</strong> {d?.phone || "—"}
