@@ -30,7 +30,7 @@ const Navbar = () => {
       </div>
 
       <ul className="nav-links">
-        {/* لو User */}
+        {/* ================= User Navbar ================= */}
         {isUser && (
           <>
             <li>
@@ -38,13 +38,22 @@ const Navbar = () => {
                 Home
               </NavLink>
             </li>
+
             <li>
               <NavLink to="/book">Book</NavLink>
+            </li>
+
+            <li>
+              <NavLink to="/about">About</NavLink>
+            </li>
+
+            <li>
+              <NavLink to="/faq">FAQ</NavLink>
             </li>
           </>
         )}
 
-        {/* لو Hospital */}
+        {/* ================= Hospital Navbar ================= */}
         {isHospital && (
           <>
             <li>
@@ -53,31 +62,26 @@ const Navbar = () => {
               </NavLink>
             </li>
 
-            {/* ✅ NEW: Donors page for hospital */}
+            <li>
+              <NavLink to="/faq">My Requests</NavLink>
+            </li>
+
             <li>
               <NavLink to="/donors">Donors</NavLink>
             </li>
           </>
         )}
-
-        {/* روابط عامة للجميع */}
-        <li>
-          <NavLink to="/about">About</NavLink>
-        </li>
-
-        {/* ✅ User: FAQ | ✅ Hospital: My Requests (نفس route /faq) */}
-        <li>
-          <NavLink to="/faq">{isHospital ? "My Requests" : "FAQ"}</NavLink>
-        </li>
       </ul>
 
       <div className="icons">
-        {/* الجرس يفتح صفحة الطلبات */}
-        <Link to="/request" title="Requests">
-          <FaBell className="icon" />
-        </Link>
+        {/* 🔔 الجرس يظهر لليوزر فقط */}
+        {isUser && (
+          <Link to="/request" title="Requests">
+            <FaBell className="icon" />
+          </Link>
+        )}
 
-        {/* البروفايل */}
+        {/* 👤 البروفايل للجميع */}
         <Link to="/profile" title="Profile">
           <FaUserCircle className="icon" />
         </Link>

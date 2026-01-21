@@ -1,5 +1,5 @@
 // src/App.js
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
@@ -13,7 +13,6 @@ import Six from "./components/six";
 import Home from "./components/Home";
 import About from "./components/About";
 import Faq from "./components/Faq";
-import Welcome from "./components/Welcome";
 import AfterMap from "./components/AfterMap";
 import Book from "./components/Book";
 import Profile from "./components/Profile";
@@ -22,20 +21,65 @@ import Emergency from "./components/Emergency";
 import Request from "./components/Request";
 import Map from "./components/Map";
 
-// ✅ NEW
 import Donors from "./components/Donors";
+
+// ---------------- Helpers (داخل نفس الملف) ----------------
+const getAccountType = () => {
+  try {
+    const raw = localStorage.getItem("user");
+    if (!raw) return "";
+    const u = JSON.parse(raw);
+    return String(u?.accountType || u?.AccountType || "")
+      .toLowerCase()
+      .trim();
+  } catch {
+    return "";
+  }
+};
+
+const isLoggedIn = () => localStorage.getItem("isLoggedIn") === "true";
+
+// Redirect ذكي حسب حالة الدخول ونوع الحساب
+const SmartRedirect = ({ whenLoggedOut = "/login" }) => {
+  const logged = isLoggedIn();
+  const type = getAccountType();
+
+  if (!logged) return <Navigate to={whenLoggedOut} replace />;
+
+  // لو Hospital
+  if (type === "hospital") return <Navigate to="/emergency" replace />;
+
+  // default User
+  return <Navigate to="/home" replace />;
+};
 
 //--------------------------------------------------------------
 function App() {
   return (
     <div className="App">
       <Routes>
+        {/* Landing */}
         <Route path="/" element={<First />} />
+
+        {/* Auth (نعمل alias للـ paths المختلفة عشان ميبقاش فيه تلخبط) */}
         <Route path="/login" element={<Second />} />
-        <Route path="/SignUp" element={<Three />} />
-        <Route path="/Forget" element={<Four />} />
+        <Route path="/Login" element={<Navigate to="/login" replace />} />
+
+        <Route path="/signup" element={<Three />} />
+        <Route path="/SignUp" element={<Navigate to="/signup" replace />} />
+
+        <Route path="/forget" element={<Four />} />
+        <Route path="/Forget" element={<Navigate to="/forget" replace />} />
+
         <Route path="/otp" element={<Five />} />
-        <Route path="/Reset" element={<Six />} />
+        <Route path="/Otp" element={<Navigate to="/otp" replace />} />
+
+        <Route path="/reset" element={<Six />} />
+        <Route path="/Reset" element={<Navigate to="/reset" replace />} />
+
+        {/* ✅ إلغاء Welcome نهائيًا: أي زيارة له تتحول مباشرة */}
+        <Route path="/welcome" element={<SmartRedirect whenLoggedOut="/login" />} />
+        <Route path="/Welcome" element={<Navigate to="/welcome" replace />} />
 
         {/* ✅ User Home */}
         <Route
@@ -47,18 +91,11 @@ function App() {
           }
         />
 
+        {/* صفحات عامة (هنسيبها زي ما هي دلوقتي، التحكم الحقيقي للـ Hospital هنظبطه في Navbar بعدين) */}
         <Route path="/about" element={<About />} />
         <Route path="/faq" element={<Faq />} />
 
-        <Route
-          path="/Welcome"
-          element={
-            <ProtectedRoute allow={["user", "hospital"]}>
-              <Welcome />
-            </ProtectedRoute>
-          }
-        />
-
+        {/* صفحة AfterMap (مفروض تظهر للـ user فقط في النهاية، هنظبطها بعدين) */}
         <Route path="/aftermap" element={<AfterMap />} />
 
         <Route
@@ -98,7 +135,7 @@ function App() {
           }
         />
 
-        {/* ✅ Hospital Donors Page */}
+        {/* ✅ Donors Page (حالياً Hospital فقط — هنغيرها لاحقًا حسب طلبك إنها تبقى لكل السيستم) */}
         <Route
           path="/donors"
           element={
@@ -108,7 +145,7 @@ function App() {
           }
         />
 
-        {/* ✅ User Requests List (Donate/Call) */}
+        {/* ✅ User Requests List */}
         <Route
           path="/request"
           element={
@@ -126,6 +163,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* ✅ أي Route غلط */}
+        <Route path="*" element={<SmartRedirect whenLoggedOut="/login" />} />
       </Routes>
     </div>
   );

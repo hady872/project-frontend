@@ -27,7 +27,8 @@ function Three() {
     setError("");
 
     // ✅ لازم يختار نوع الحساب
-    if (!accountType) return setError("Please choose account type (User or Hospital)");
+    if (!accountType)
+      return setError("Please choose account type (User or Hospital)");
 
     // basic validation
     if (!fullName.trim()) return setError("Please enter your full name");
@@ -54,8 +55,8 @@ function Three() {
         otps: [],
       });
 
-      // ✅ هيروح /welcome -> redirect حسب accountType
-      navigate("/welcome");
+      // ✅ بعد التسجيل: روح لصفحة اللوجين مباشرة
+      navigate("/login", { replace: true });
     } catch (err) {
       const backendMsg =
         err?.response?.data?.message ||

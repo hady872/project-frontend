@@ -7,7 +7,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFacebook, faInstagram, faGoogle } from "@fortawesome/free-brands-svg-icons";
+import {
+  faFacebook,
+  faInstagram,
+  faGoogle,
+} from "@fortawesome/free-brands-svg-icons";
 
 import logo from "../pics/logo.png";
 import api from "../api";
@@ -27,12 +31,14 @@ function Second() {
     const cleanEmail = email.trim();
     const cleanPassword = password.trim();
 
+    // ✅ نقص بيانات
     if (!cleanEmail || !cleanPassword) {
       setErrorMsg("Please enter your email and password");
       return;
     }
 
     setLoading(true);
+
     try {
       const res = await api.post("/api/Users/login", {
         email: cleanEmail,
@@ -46,38 +52,65 @@ function Second() {
         return;
       }
 
-      // ✅ خزن البيانات
+      // ✅ حفظ بيانات المستخدم
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("isLoggedIn", "true");
 
-      // ✅ اقرأ نوع الحساب بأي اسم ممكن ييجي من الباك
       const rawAccountType = user.accountType ?? user.AccountType ?? "";
       const accountType = String(rawAccountType).toLowerCase();
 
-      // ✅ Debug واضح
-      console.log("LOGIN RESPONSE USER:", user);
-      console.log("ACCOUNT TYPE:", accountType);
-
-      // ✅ تحويل حسب نوع الحساب
+      // ✅ توجيه حسب نوع الحساب
       if (accountType === "hospital") {
         navigate("/emergency");
       } else {
         navigate("/home");
       }
     } catch (err) {
-      const backendMsg =
-        err?.response?.data?.message ||
-        err?.response?.data?.title;
+      /**
+       * ===========================
+       * 🔍 ERROR HANDLING الذكي
+       * ===========================
+       */
 
-      const validationErrors = err?.response?.data?.errors;
-
-      if (validationErrors) {
-        const firstKey = Object.keys(validationErrors)[0];
-        const firstMsg = validationErrors[firstKey]?.[0];
-        setErrorMsg(firstMsg || "Please check your inputs.");
-      } else {
-        setErrorMsg(backendMsg || "Login failed");
+      // ❌ السيرفر مش شغال أو مش متوصل
+      if (!err.response) {
+        setErrorMsg(
+          "Cannot connect to server. Please make sure the backend is running."
+        );
+        return;
       }
+
+      const status = err.response.status;
+      const data = err.response.data;
+
+      // ❌ إيميل مش موجود
+      if (status === 404) {
+        setErrorMsg("No account found with this email.");
+        return;
+      }
+
+      // ❌ باسورد غلط
+      if (status === 401) {
+        setErrorMsg("Incorrect password. Please try again.");
+        return;
+      }
+
+      // ❌ Validation errors (مثلاً صيغة إيميل غلط)
+      if (status === 400 && data?.errors) {
+        const firstKey = Object.keys(data.errors)[0];
+        const firstMsg = data.errors[firstKey]?.[0];
+        setErrorMsg(firstMsg || "Invalid login data.");
+        return;
+      }
+
+      // ❌ أي رسالة جاية من الباك
+      if (data?.message) {
+        setErrorMsg(data.message);
+        return;
+      }
+
+      // ❌ fallback
+      setErrorMsg("Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -98,9 +131,7 @@ function Second() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleLogin();
-              }}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
             />
 
             <label className="label-pass">Password</label>
@@ -110,12 +141,10 @@ function Second() {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleLogin();
-              }}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
             />
 
-            {errorMsg ? <p className="error-msg">{errorMsg}</p> : null}
+            {errorMsg && <p className="error-msg">{errorMsg}</p>}
 
             <button
               type="button"
@@ -142,15 +171,27 @@ function Second() {
             </div>
 
             <div className="social-login">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FontAwesomeIcon icon={faFacebook} className="face" />
               </a>
 
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FontAwesomeIcon icon={faInstagram} className="insta" />
               </a>
 
-              <a href="https://google.com" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FontAwesomeIcon icon={faGoogle} className="google" />
               </a>
             </div>

@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Emergency.scss";
 import Navbar from "./Navbar";
+import api from "../api";
 //--------------------------------------------------------
 
 const RequestForm = () => {
@@ -23,7 +24,7 @@ const RequestForm = () => {
     (loggedHospital?.fullName || loggedHospital?.name || "Hospital").trim();
 
   const [form, setForm] = useState({
-    patientName: "", // ✅ NEW
+    patientName: "",
     amount: "",
     contact: "",
     location: "",
@@ -32,6 +33,8 @@ const RequestForm = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,62 +44,62 @@ const RequestForm = () => {
   const validate = () => {
     const err = {};
 
-    if (!form.patientName.trim()) err.patientName = "Required"; // ✅ NEW
+    if (!form.patientName.trim()) err.patientName = "Required";
     if (!String(form.amount).trim()) err.amount = "Required";
     if (!form.contact.trim()) err.contact = "Required";
     if (!form.location.trim()) err.location = "Required";
     if (!form.bloodType) err.bloodType = "Choose blood type";
     if (!form.urgency) err.urgency = "Choose urgency";
 
-    // ✅ لازم يكون فعلاً داخل بحساب مستشفى
     if (!hospitalUserID) err.hospitalUserID = "Please login as hospital again.";
-
-    // ✅ لازم يكون في اسم للمستشفى من الحساب
     if (!hospitalName) err.hospitalName = "Hospital name is missing in account.";
 
     setErrors(err);
     return Object.keys(err).length === 0;
   };
 
-  const makeRequestId = () => {
-    return `REQ_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-  };
-
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError("");
+
     if (!validate()) return;
 
-    const newRequest = {
-      requestId: makeRequestId(),
-      hospitalUserID: String(hospitalUserID),
-
-      // ✅ اسم المستشفى ييجي تلقائي من الحساب (للعرض عند اليوزر)
+    const payload = {
+      hospitalUserID: Number(hospitalUserID), // ✅ int زي الموديل في الباك
       hospitalName,
-
-      // ✅ اسم المريض (اللي محتاج الدم)
       patientName: form.patientName.trim(),
-
       amount: Number(form.amount),
-      contact: form.contact.trim(),
-      location: form.location.trim(),
       bloodType: form.bloodType,
       urgency: form.urgency,
-
-      createdAt: new Date().toLocaleString(),
+      contact: form.contact.trim(),
+      location: form.location.trim(),
+      // createdAt: الباك هيحطه تلقائي (Default DateTime.Now)
     };
 
+    setIsSubmitting(true);
     try {
-      const raw = localStorage.getItem("hospitalRequests");
-      const arr = raw ? JSON.parse(raw) : [];
-      const safeArr = Array.isArray(arr) ? arr : [];
+      await api.post("/api/HospitalRequests/Create", payload);
 
-      safeArr.push(newRequest);
-      localStorage.setItem("hospitalRequests", JSON.stringify(safeArr));
-    } catch {
-      localStorage.setItem("hospitalRequests", JSON.stringify([newRequest]));
+      // ✅ بعد نجاح الحفظ في الداتابيز
+      navigate("/faq");
+    } catch (err) {
+      // رسائل واضحة حسب رد الباك
+      const backendMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
+        (typeof err?.response?.data === "string" ? err.response.data : null);
+
+      const validationErrors = err?.response?.data?.errors;
+      if (validationErrors) {
+        const firstKey = Object.keys(validationErrors)[0];
+        const firstMsg = validationErrors[firstKey]?.[0];
+        setSubmitError(firstMsg || "Please check your inputs.");
+      } else {
+        setSubmitError(backendMsg || "Failed to submit request.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    navigate("/faq");
   };
 
   return (
@@ -109,7 +112,6 @@ const RequestForm = () => {
         <form className="request-form" onSubmit={onSubmit} noValidate>
           {/* LEFT COLUMN */}
           <div className="left-col">
-            {/* ✅ NEW: Patient Name */}
             <label className="field-label">Patient Name</label>
             <input
               name="patientName"
@@ -155,7 +157,6 @@ const RequestForm = () => {
               <small className="err">{errors.location}</small>
             )}
 
-            {/* ✅ لو مش داخل كمستشفى */}
             {errors.hospitalUserID ? (
               <small className="err">{errors.hospitalUserID}</small>
             ) : null}
@@ -163,6 +164,8 @@ const RequestForm = () => {
             {errors.hospitalName ? (
               <small className="err">{errors.hospitalName}</small>
             ) : null}
+
+            {submitError ? <small className="err">{submitError}</small> : null}
           </div>
 
           {/* RIGHT COLUMN */}
@@ -222,8 +225,13 @@ const RequestForm = () => {
 
           {/* ✅ Submit button */}
           <div className="submit-wrap">
-            <button type="submit" className="submit-btn">
-              Submit Request
+            <button
+              type="submit"
+              className="submit-btn"
+              disabled={isSubmitting}
+              style={{ opacity: isSubmitting ? 0.7 : 1 }}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Request"}
             </button>
           </div>
         </form>

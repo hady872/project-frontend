@@ -37,6 +37,19 @@ const Profile = () => {
 
   const ownerUserID = loggedUser?.userID;
 
+  // ✅ detect account type
+  const accountType = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw) return "";
+      const u = JSON.parse(raw);
+      return String(u?.accountType || "").toLowerCase().trim();
+    } catch {
+      return "";
+    }
+  }, []);
+  const isHospital = accountType === "hospital";
+
   const handleLogout = () => {
     const ok = window.confirm("Are you sure you want to log out?");
     if (!ok) return;
@@ -83,6 +96,7 @@ const Profile = () => {
     setBookings(mine);
   };
 
+  // ✅ load profile (user أو hospital) من الباك
   useEffect(() => {
     const loadProfile = async () => {
       setErrorMsg("");
@@ -127,11 +141,12 @@ const Profile = () => {
     loadProfile();
   }, []);
 
-  // load bookings
+  // ✅ load bookings only for USER (مش للمستشفى)
   useEffect(() => {
+    if (isHospital) return;
     loadBookingsForThisUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ownerUserID]);
+  }, [ownerUserID, isHospital]);
 
   const formatCreatedAt = (iso) => {
     if (!iso) return "";
@@ -147,7 +162,6 @@ const Profile = () => {
 
     const all = readAllBookings();
     const updated = all.filter((b) => {
-      // نحذف حجز واحد يخص نفس صاحب الحساب ونفس المفتاح
       const sameOwner = String(b?.ownerUserID) === String(ownerUserID);
       const sameKey = bookingKey(b) === String(key);
       return !(sameOwner && sameKey);
@@ -200,7 +214,6 @@ const Profile = () => {
         phone: editPhone.trim(),
         day: editDay,
         clock: editClock,
-        // optional timestamp for tracking edits
         updatedAt: new Date().toISOString(),
       };
     });
@@ -221,335 +234,378 @@ const Profile = () => {
           <p style={{ padding: "20px", color: "salmon" }}>{errorMsg}</p>
         ) : (
           <>
+            {/* ===================== TOP CARD ===================== */}
             <div className="user-card">
               <div className="user-image">
                 <img src={logo} alt="profile" />
               </div>
 
               <div className="user-details">
-                <h2 className="name">{userData?.fullName || "—"}</h2>
+                {/* ✅ Hospital: show name only */}
+                {isHospital ? (
+                  <>
+                    <h2 className="name">{userData?.fullName || "Hospital"}</h2>
 
-                <div className="info-grid">
-                  <p>
-                    <strong>Blood Type:</strong> {userData?.bloodType || "—"}
-                  </p>
-
-                  <p>
-                    <strong>Phone Number:</strong> {userData?.phone || "—"}
-                  </p>
-
-                  <p>
-                    <strong>Address:</strong> {userData?.city || "—"}
-                  </p>
-                </div>
-
-                <div style={{ marginTop: "14px" }}>
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    style={{
-                      padding: "10px 16px",
-                      borderRadius: "10px",
-                      border: "none",
-                      cursor: "pointer",
-                      fontWeight: "600",
-                    }}
-                  >
-                    Log out
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* ===== BOOKINGS FROM THIS ACCOUNT ===== */}
-            <div className="section">
-              <h3>Bookings From This Account</h3>
-
-              {bookings.length === 0 ? (
-                <p style={{ opacity: 0.85, marginTop: 10 }}>No bookings yet.</p>
-              ) : (
-                <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
-                  {bookings.map((b, idx) => {
-                    const key = bookingKey(b) || String(idx);
-                    const isEditing = editingKey === key;
-
-                    return (
-                      <div
-                        key={key}
+                    <div style={{ marginTop: "14px" }}>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
                         style={{
-                          padding: 14,
-                          borderRadius: 12,
-                          background: "rgba(255,255,255,0.06)",
-                          border: "1px solid rgba(255,255,255,0.08)",
+                          padding: "10px 16px",
+                          borderRadius: "10px",
+                          border: "none",
+                          cursor: "pointer",
+                          fontWeight: "600",
                         }}
                       >
-                        {/* Top row: actions */}
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            flexWrap: "wrap",
-                            gap: 10,
-                          }}
-                        >
-                          <div style={{ opacity: 0.9 }}>
-                            <strong>Booking #{idx + 1}</strong>
-                          </div>
+                        Log out
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* ✅ User: keep existing details */}
+                    <h2 className="name">{userData?.fullName || "—"}</h2>
 
-                          {!isEditing ? (
-                            <div style={{ display: "flex", gap: 8 }}>
-                              <button
-                                type="button"
-                                onClick={() => startEdit(b)}
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: 10,
-                                  border: "none",
-                                  cursor: "pointer",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                Edit
-                              </button>
+                    <div className="info-grid">
+                      <p>
+                        <strong>Blood Type:</strong> {userData?.bloodType || "—"}
+                      </p>
 
-                              <button
-                                type="button"
-                                onClick={() => deleteBooking(key)}
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: 10,
-                                  border: "none",
-                                  cursor: "pointer",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          ) : (
-                            <div style={{ display: "flex", gap: 8 }}>
-                              <button
-                                type="button"
-                                onClick={() => saveEdit(key)}
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: 10,
-                                  border: "none",
-                                  cursor: "pointer",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                Save
-                              </button>
+                      <p>
+                        <strong>Phone Number:</strong> {userData?.phone || "—"}
+                      </p>
 
-                              <button
-                                type="button"
-                                onClick={cancelEdit}
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: 10,
-                                  border: "none",
-                                  cursor: "pointer",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                      <p>
+                        <strong>Address:</strong> {userData?.city || "—"}
+                      </p>
+                    </div>
 
-                        {isEditing && editError ? (
-                          <p style={{ marginTop: 10, color: "salmon" }}>
-                            {editError}
-                          </p>
-                        ) : null}
+                    <div style={{ marginTop: "14px" }}>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        style={{
+                          padding: "10px 16px",
+                          borderRadius: "10px",
+                          border: "none",
+                          cursor: "pointer",
+                          fontWeight: "600",
+                        }}
+                      >
+                        Log out
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
 
-                        {/* Main info */}
-                        <div style={{ marginTop: 10, opacity: 0.95 }}>
-                          {/* Donor / Blood / Phone */}
+            {/* ===================== USER-ONLY SECTIONS ===================== */}
+            {isHospital ? null : (
+              <>
+                {/* ===== BOOKINGS FROM THIS ACCOUNT ===== */}
+                <div className="section">
+                  <h3>Bookings From This Account</h3>
+
+                  {bookings.length === 0 ? (
+                    <p style={{ opacity: 0.85, marginTop: 10 }}>
+                      No bookings yet.
+                    </p>
+                  ) : (
+                    <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
+                      {bookings.map((b, idx) => {
+                        const key = bookingKey(b) || String(idx);
+                        const isEditing = editingKey === key;
+
+                        return (
                           <div
+                            key={key}
                             style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              flexWrap: "wrap",
-                              gap: 10,
+                              padding: 14,
+                              borderRadius: 12,
+                              background: "rgba(255,255,255,0.06)",
+                              border: "1px solid rgba(255,255,255,0.08)",
                             }}
                           >
-                            <div>
-                              <strong>Donor Name:</strong>{" "}
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                flexWrap: "wrap",
+                                gap: 10,
+                              }}
+                            >
+                              <div style={{ opacity: 0.9 }}>
+                                <strong>Booking #{idx + 1}</strong>
+                              </div>
+
                               {!isEditing ? (
-                                b?.donorName || "—"
+                                <div style={{ display: "flex", gap: 8 }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => startEdit(b)}
+                                    style={{
+                                      padding: "8px 12px",
+                                      borderRadius: 10,
+                                      border: "none",
+                                      cursor: "pointer",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    Edit
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteBooking(key)}
+                                    style={{
+                                      padding: "8px 12px",
+                                      borderRadius: 10,
+                                      border: "none",
+                                      cursor: "pointer",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
                               ) : (
-                                <input
-                                  value={editDonorName}
-                                  onChange={(e) => setEditDonorName(e.target.value)}
-                                  style={{
-                                    marginLeft: 8,
-                                    padding: "6px 8px",
-                                    borderRadius: 8,
-                                    border: "1px solid rgba(255,255,255,0.2)",
-                                    background: "transparent",
-                                    color: "inherit",
-                                  }}
-                                />
+                                <div style={{ display: "flex", gap: 8 }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => saveEdit(key)}
+                                    style={{
+                                      padding: "8px 12px",
+                                      borderRadius: 10,
+                                      border: "none",
+                                      cursor: "pointer",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    Save
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={cancelEdit}
+                                    style={{
+                                      padding: "8px 12px",
+                                      borderRadius: 10,
+                                      border: "none",
+                                      cursor: "pointer",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
                               )}
                             </div>
 
-                            <div>
-                              <strong>Blood Type:</strong> {b?.bloodType || "—"}
-                            </div>
-
-                            <div>
-                              <strong>Phone:</strong>{" "}
-                              {!isEditing ? (
-                                b?.phone || "—"
-                              ) : (
-                                <input
-                                  value={editPhone}
-                                  onChange={(e) => setEditPhone(e.target.value)}
-                                  style={{
-                                    marginLeft: 8,
-                                    padding: "6px 8px",
-                                    borderRadius: 8,
-                                    border: "1px solid rgba(255,255,255,0.2)",
-                                    background: "transparent",
-                                    color: "inherit",
-                                  }}
-                                />
-                              )}
-                            </div>
-                          </div>
-
-                          <div style={{ marginTop: 8 }}>
-                            <strong>Center:</strong> {b?.center || "—"}{" "}
-                            {b?.urgency ? (
-                              <>
-                                {" "}
-                                | <strong>Urgency:</strong> {b.urgency}
-                              </>
+                            {isEditing && editError ? (
+                              <p style={{ marginTop: 10, color: "salmon" }}>
+                                {editError}
+                              </p>
                             ) : null}
-                          </div>
 
-                          <div style={{ marginTop: 6 }}>
-                            <strong>Day:</strong>{" "}
-                            {!isEditing ? (
-                              b?.day || "—"
-                            ) : (
-                              <input
-                                type="date"
-                                value={editDay}
-                                onChange={(e) => setEditDay(e.target.value)}
+                            <div style={{ marginTop: 10, opacity: 0.95 }}>
+                              <div
                                 style={{
-                                  marginLeft: 8,
-                                  padding: "6px 8px",
-                                  borderRadius: 8,
-                                  border: "1px solid rgba(255,255,255,0.2)",
-                                  background: "transparent",
-                                  color: "inherit",
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  flexWrap: "wrap",
+                                  gap: 10,
                                 }}
-                              />
-                            )}{" "}
-                            {"  "}
-                            <strong>Clock:</strong>{" "}
-                            {!isEditing ? (
-                              b?.clock || "—"
-                            ) : (
-                              <input
-                                type="time"
-                                value={editClock}
-                                onChange={(e) => setEditClock(e.target.value)}
-                                style={{
-                                  marginLeft: 8,
-                                  padding: "6px 8px",
-                                  borderRadius: 8,
-                                  border: "1px solid rgba(255,255,255,0.2)",
-                                  background: "transparent",
-                                  color: "inherit",
-                                }}
-                              />
-                            )}{" "}
-                            {"  "}
-                            <strong>Weight:</strong> {String(b?.weight ?? "—")}{" "}
-                            {"  "}
-                            <strong>Birth Date:</strong> {b?.birthDate || "—"}
-                          </div>
+                              >
+                                <div>
+                                  <strong>Donor Name:</strong>{" "}
+                                  {!isEditing ? (
+                                    b?.donorName || "—"
+                                  ) : (
+                                    <input
+                                      value={editDonorName}
+                                      onChange={(e) =>
+                                        setEditDonorName(e.target.value)
+                                      }
+                                      style={{
+                                        marginLeft: 8,
+                                        padding: "6px 8px",
+                                        borderRadius: 8,
+                                        border:
+                                          "1px solid rgba(255,255,255,0.2)",
+                                        background: "transparent",
+                                        color: "inherit",
+                                      }}
+                                    />
+                                  )}
+                                </div>
 
-                          <div style={{ marginTop: 6 }}>
-                            <strong>Medications:</strong> {b?.medications || "—"}{" "}
-                            {"  "}
-                            <strong>Surgery:</strong> {b?.surgery || "—"}{" "}
-                            {"  "}
-                            <strong>Donated Before:</strong>{" "}
-                            {b?.donatedBefore || "—"}{" "}
-                            {"  "}
-                            <strong>Infection:</strong> {b?.infection || "—"}
-                          </div>
+                                <div>
+                                  <strong>Blood Type:</strong>{" "}
+                                  {b?.bloodType || "—"}
+                                </div>
 
-                          {b?.createdAt ? (
-                            <div style={{ marginTop: 6, opacity: 0.8 }}>
-                              <strong>Created:</strong>{" "}
-                              {formatCreatedAt(b.createdAt)}
+                                <div>
+                                  <strong>Phone:</strong>{" "}
+                                  {!isEditing ? (
+                                    b?.phone || "—"
+                                  ) : (
+                                    <input
+                                      value={editPhone}
+                                      onChange={(e) =>
+                                        setEditPhone(e.target.value)
+                                      }
+                                      style={{
+                                        marginLeft: 8,
+                                        padding: "6px 8px",
+                                        borderRadius: 8,
+                                        border:
+                                          "1px solid rgba(255,255,255,0.2)",
+                                        background: "transparent",
+                                        color: "inherit",
+                                      }}
+                                    />
+                                  )}
+                                </div>
+                              </div>
+
+                              <div style={{ marginTop: 8 }}>
+                                <strong>Center:</strong> {b?.center || "—"}{" "}
+                                {b?.urgency ? (
+                                  <>
+                                    {" "}
+                                    | <strong>Urgency:</strong> {b.urgency}
+                                  </>
+                                ) : null}
+                              </div>
+
+                              <div style={{ marginTop: 6 }}>
+                                <strong>Day:</strong>{" "}
+                                {!isEditing ? (
+                                  b?.day || "—"
+                                ) : (
+                                  <input
+                                    type="date"
+                                    value={editDay}
+                                    onChange={(e) => setEditDay(e.target.value)}
+                                    style={{
+                                      marginLeft: 8,
+                                      padding: "6px 8px",
+                                      borderRadius: 8,
+                                      border:
+                                        "1px solid rgba(255,255,255,0.2)",
+                                      background: "transparent",
+                                      color: "inherit",
+                                    }}
+                                  />
+                                )}{" "}
+                                {"  "}
+                                <strong>Clock:</strong>{" "}
+                                {!isEditing ? (
+                                  b?.clock || "—"
+                                ) : (
+                                  <input
+                                    type="time"
+                                    value={editClock}
+                                    onChange={(e) =>
+                                      setEditClock(e.target.value)
+                                    }
+                                    style={{
+                                      marginLeft: 8,
+                                      padding: "6px 8px",
+                                      borderRadius: 8,
+                                      border:
+                                        "1px solid rgba(255,255,255,0.2)",
+                                      background: "transparent",
+                                      color: "inherit",
+                                    }}
+                                  />
+                                )}{" "}
+                                {"  "}
+                                <strong>Weight:</strong>{" "}
+                                {String(b?.weight ?? "—")} {"  "}
+                                <strong>Birth Date:</strong>{" "}
+                                {b?.birthDate || "—"}
+                              </div>
+
+                              <div style={{ marginTop: 6 }}>
+                                <strong>Medications:</strong>{" "}
+                                {b?.medications || "—"} {"  "}
+                                <strong>Surgery:</strong> {b?.surgery || "—"}{" "}
+                                {"  "}
+                                <strong>Donated Before:</strong>{" "}
+                                {b?.donatedBefore || "—"} {"  "}
+                                <strong>Infection:</strong>{" "}
+                                {b?.infection || "—"}
+                              </div>
+
+                              {b?.createdAt ? (
+                                <div style={{ marginTop: 6, opacity: 0.8 }}>
+                                  <strong>Created:</strong>{" "}
+                                  {formatCreatedAt(b.createdAt)}
+                                </div>
+                              ) : null}
                             </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* ===== UPCOMING APPOINTMENT ===== */}
-            <div className="section">
-              <h3>Upcoming Appointment</h3>
-
-              <div className="appointment-box">
-                <div className="date-box">
-                  <h4>Day</h4>
-                  <span>15 OCT</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                <div className="clock-box">
-                  <h4>Clock</h4>
-                  <span>10:30</span>
+                {/* ===== UPCOMING APPOINTMENT ===== */}
+                <div className="section">
+                  <h3>Upcoming Appointment</h3>
+
+                  <div className="appointment-box">
+                    <div className="date-box">
+                      <h4>Day</h4>
+                      <span>15 OCT</span>
+                    </div>
+
+                    <div className="clock-box">
+                      <h4>Clock</h4>
+                      <span>10:30</span>
+                    </div>
+                  </div>
+
+                  <div className="center-box">
+                    <h4>Center</h4>
+                    <p>Ismailia Plasma Donor</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="center-box">
-                <h4>Center</h4>
-                <p>Ismailia Plasma Donor</p>
-              </div>
-            </div>
+                {/* ===== DONATION HISTORY ===== */}
+                <div className="section">
+                  <h3>Donation History</h3>
 
-            {/* ===== DONATION HISTORY ===== */}
-            <div className="section">
-              <h3>Donation History</h3>
+                  <table className="history-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Center</th>
+                      </tr>
+                    </thead>
 
-              <table className="history-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Center</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <tr>
-                    <td>30/1/2025</td>
-                    <td>2 Unit</td>
-                    <td>Ismailia Plasma Donor</td>
-                  </tr>
-                  <tr>
-                    <td>30/4/2025</td>
-                    <td>2 Unit</td>
-                    <td>Ismailia Plasma Donor</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    <tbody>
+                      <tr>
+                        <td>30/1/2025</td>
+                        <td>2 Unit</td>
+                        <td>Ismailia Plasma Donor</td>
+                      </tr>
+                      <tr>
+                        <td>30/4/2025</td>
+                        <td>2 Unit</td>
+                        <td>Ismailia Plasma Donor</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
