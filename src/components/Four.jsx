@@ -1,3 +1,4 @@
+// src/components/Four.jsx
 import '../styles/random.scss';
 import '../styles/Four.scss';
 import { Link } from 'react-router-dom';

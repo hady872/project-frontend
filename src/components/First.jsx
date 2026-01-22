@@ -1,3 +1,4 @@
+// src/components/First.jsx
 import '../styles/First.scss';
 import '../styles/random.scss'
 import xImage from '../pics/16.png';

@@ -1,3 +1,4 @@
+// src/components/six.jsx
 import '../styles/random.scss';
 import '../styles/Six.scss';
 import { Link } from 'react-router-dom';

@@ -1,3 +1,4 @@
+// src/components/About.jsx
 import React from "react";
 import "../styles/About.scss";
 import aboutImg from "../pics/06.JPG";

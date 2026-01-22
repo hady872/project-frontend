@@ -1,3 +1,4 @@
+// src/components/Map.jsx
 import React, { useState } from "react";
 import "../styles/Map.scss";
 

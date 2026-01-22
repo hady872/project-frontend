@@ -1,3 +1,4 @@
+// src/components/Donation.jsx
 import React from "react";
 import Navbar from "./Navbar";
 import "../styles/Donation.scss";

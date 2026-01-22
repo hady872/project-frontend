@@ -1,3 +1,4 @@
+// src/components/Welcome.jsx
 import React from "react";
 import '../styles/Welcome.scss';
 import bgImage from "../pics/welcome.jpg";

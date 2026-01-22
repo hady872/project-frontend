@@ -1,3 +1,4 @@
+// src/components/Home.jsx
 import React, { useEffect, useState } from "react";
 import { mockBloodBanks } from "../mock/bloodBanks.mock";
 import "../styles/home.scss";

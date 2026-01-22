@@ -1,3 +1,4 @@
+// src/components/Five.jsx
 import '../styles/random.scss';
 import '../styles/Five.scss';
 import { Link } from 'react-router-dom';
