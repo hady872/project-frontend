@@ -191,3 +191,4 @@ function BookDonation() {
 }
 
 export default BookDonation;
+// sync with back git commit -m "Successfully migrated to SQLite and verified build"
