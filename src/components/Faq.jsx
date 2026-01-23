@@ -83,12 +83,10 @@ const FAQ = () => {
 
     setLoadingRequests(true);
     try {
-      // ✅ الأفضل: رجّع طلبات المستشفى من الباك مباشرة
       const res = await api.get(`/api/HospitalRequests/GetByHospital/${hospitalUserID}`);
       const list = Array.isArray(res?.data) ? res.data : [];
       const normalized = list.map(normalizeReq);
 
-      // الأحدث فوق (احتياطي)
       normalized.sort((a, b) => {
         const ta = new Date(a?.createdAt || 0).getTime();
         const tb = new Date(b?.createdAt || 0).getTime();
@@ -112,7 +110,6 @@ const FAQ = () => {
   useEffect(() => {
     if (!isHospital) return;
     loadRequestsFromBackend();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHospital, hospitalUserID]);
 
   const startEdit = (idx, currentAmount, currentUrgency, currentPatientName) => {
@@ -163,8 +160,6 @@ const FAQ = () => {
     }
 
     try {
-      // ✅ الباك بتاعنا: PUT /api/HospitalRequests/{id}
-      // ومش محتاج تبعت كل الحقول، بس هنرسل اللي موجود عشان يكون آمن
       const payload = {
         requestID: id,
         hospitalUserID: Number(target.hospitalUserID),
@@ -205,9 +200,7 @@ const FAQ = () => {
     }
 
     try {
-      // ✅ الباك بتاعنا: DELETE /api/HospitalRequests/{id}
       await api.delete(`/api/HospitalRequests/${id}`);
-
       await loadRequestsFromBackend();
       cancelEdit();
     } catch (err) {
@@ -227,9 +220,8 @@ const FAQ = () => {
     return d.toLocaleString();
   };
 
-  // لو مستشفى: اعرض My Requests
   if (isHospital) {
-    const displayList = myRequests; // already sorted desc
+    const displayList = myRequests;
 
     return (
       <div className="faq-page hospital-requests">
@@ -248,7 +240,6 @@ const FAQ = () => {
             <div className="requests-grid">
               {displayList.map((r, idx) => {
                 const isEditing = editingIndex === idx;
-
                 const donations = Array.isArray(r?.donations) ? r.donations : [];
                 const donationsCount = donations.length;
 
@@ -296,7 +287,6 @@ const FAQ = () => {
                     <div className="request-card__body">
                       <div className="row">
                         <span className="label">Patient</span>
-
                         {!isEditing ? (
                           <span className="value">{r?.patientName || "—"}</span>
                         ) : (
@@ -370,7 +360,6 @@ const FAQ = () => {
 
                       {isEditing && editError ? <p className="edit-error">{editError}</p> : null}
 
-                      {/* ===================== Donations (لو موجودة) ===================== */}
                       <div
                         style={{
                           marginTop: 12,
@@ -397,55 +386,49 @@ const FAQ = () => {
                         ) : (
                           <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
                             {donations
-                              .slice()
-                              .sort((a, b) => {
-                                const ta = new Date(a?.bookedAt || 0).getTime();
-                                const tb = new Date(b?.bookedAt || 0).getTime();
-                                return tb - ta;
-                              })
-                              .map((d, di) => (
-                                <div
-                                  key={di}
-                                  style={{
-                                    padding: 10,
-                                    borderRadius: 10,
-                                    background: "rgba(0,0,0,0.03)",
-                                    border: "1px solid rgba(0,0,0,0.06)",
-                                  }}
-                                >
+                              .map((d, di) => {
+                                // استخراج التاريخ والوقت من donationDate
+                                const dateObj = d.donationDate ? new Date(d.donationDate) : null;
+                                const displayDay = dateObj && !isNaN(dateObj) ? dateObj.toLocaleDateString() : (d.day || "—");
+                                const displayClock = dateObj && !isNaN(dateObj) ? dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (d.clock || "—");
+
+                                return (
                                   <div
+                                    key={di}
                                     style={{
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      flexWrap: "wrap",
-                                      gap: 10,
+                                      padding: 10,
+                                      borderRadius: 10,
+                                      background: "rgba(0,0,0,0.03)",
+                                      border: "1px solid rgba(0,0,0,0.06)",
                                     }}
                                   >
-                                    <div>
-                                      <strong>Donor:</strong> {d?.donorName || "—"}
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        flexWrap: "wrap",
+                                        gap: 10,
+                                      }}
+                                    >
+                                      <div>
+                                        <strong>Donor:</strong> {d?.fullName || "—"}
+                                      </div>
+                                      <div>
+                                        <strong>Phone:</strong> {d?.phone || "—"}
+                                      </div>
                                     </div>
-                                    <div>
-                                      <strong>Phone:</strong> {d?.phone || "—"}
+
+                                    <div style={{ marginTop: 6, opacity: 0.95 }}>
+                                      <strong>Day:</strong> {displayDay}{" "}
+                                      {"  "}
+                                      <strong>Clock:</strong> {displayClock}
                                     </div>
                                   </div>
-
-                                  <div style={{ marginTop: 6, opacity: 0.95 }}>
-                                    <strong>Day:</strong> {d?.day || "—"}{" "}
-                                    {"  "}
-                                    <strong>Clock:</strong> {d?.clock || "—"}
-                                  </div>
-
-                                  {d?.bookedAt ? (
-                                    <div style={{ marginTop: 6, opacity: 0.8 }}>
-                                      <strong>Booked:</strong> {formatBookedAt(d.bookedAt)}
-                                    </div>
-                                  ) : null}
-                                </div>
-                              ))}
+                                );
+                              })}
                           </div>
                         )}
                       </div>
-                      {/* =============================================================== */}
                     </div>
                   </div>
                 );
@@ -457,55 +440,31 @@ const FAQ = () => {
     );
   }
 
-  // ===================== User: FAQ (كما هي) =====================
   return (
     <div className="faq-page">
       <Navbar />
       <div className="faq-content">
         <h1>Frequently Asked Questions</h1>
-
         <div className="faq-section">
-          <h3>
-            <FaTint className="icon red" /> Who Can Donate?
-          </h3>
+          <h3><FaTint className="icon red" /> Who Can Donate?</h3>
           <ul>
             <li>Age: Between 18 and 60 years old</li>
             <li>Weight: At least 50 kg (110 lbs)</li>
-            <li>
-              Health: Must be in good health — no fever, infections, or chronic diseases
-            </li>
-            <li>Interval: Wait at least 3 months between donations.</li>
+            <li>Health: Must be in good health.</li>
+            <li>Interval: Wait at least 3 months.</li>
           </ul>
         </div>
-
         <div className="faq-section">
-          <h3>
-            <FaTimesCircle className="icon danger" /> Who Should Not Donate?
-          </h3>
+          <h3><FaTimesCircle className="icon danger" /> Who Should Not Donate?</h3>
           <ul>
-            <li>Anyone who recently had surgery or an infection.</li>
+            <li>Anyone who recently had surgery.</li>
             <li>Pregnant or breastfeeding women.</li>
-            <li>People who recently got tattoos or piercings (within 6 months).</li>
-            <li>
-              Anyone who tested positive for hepatitis, HIV, or other blood-related diseases.
-            </li>
-          </ul>
-        </div>
-
-        <div className="faq-section">
-          <h3>
-            <FaCheck className="icon green" /> Required Tests Before Donation
-          </h3>
-          <ul>
-            <li>Blood Pressure — to make sure it's within a normal range.</li>
-            <li>Hemoglobin Level — to ensure you’re not anemic.</li>
-            <li>Body Temperature — to confirm there’s no fever or infection.</li>
-            <li>Pulse Rate — to check your heart’s condition.</li>
+            <li>People with recent tattoos.</li>
           </ul>
         </div>
       </div>
     </div>
   );
 };
-//--------------------------------------------------------
+
 export default FAQ;

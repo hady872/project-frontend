@@ -1,4 +1,3 @@
-// src/components/Book.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import "../styles/Book.scss";
 import Navbar from "./Navbar";
@@ -65,22 +64,21 @@ function BookDonation() {
       return;
     }
 
-    // ✅ تم تحديث الكائن ليرسل كافة البيانات الحقيقية إلى قاعدة البيانات
+    // ✅ التعديل: توحيد المسميات لتطابق الـ Model في الباك إند (camelCase)
     const donationData = {
-      UserID: parseInt(userID),
-      HospitalRequestID: requestID ? parseInt(requestID) : null,
-      DonationDate: `${day}T${clock}:00`,
-      BloodType: selectedBlood,
-      Status: "Pending",
-      // الحقول الإضافية التي تم تفعيلها في الـ Migration
-      FullName: fullName,
-      Phone: phone,
-      Weight: parseFloat(weight),
-      Medications: medications,
-      RecentSurgery: surgery,
-      DonatedBefore: donatedBefore,
-      RecentInfection: infection,
-      CenterName: centerName
+      userID: parseInt(userID),
+      hospitalRequestID: requestID ? parseInt(requestID) : null,
+      donationDate: `${day}T${clock}:00`,
+      bloodType: selectedBlood,
+      status: "Pending",
+      fullName: fullName,
+      phone: phone,
+      weight: parseFloat(weight),
+      medications: medications,
+      recentSurgery: surgery,
+      donatedBefore: donatedBefore,
+      recentInfection: infection,
+      centerName: centerName
     };
 
     try {
@@ -191,4 +189,3 @@ function BookDonation() {
 }
 
 export default BookDonation;
-// sync with back git commit -m "Successfully migrated to SQLite and verified build"
