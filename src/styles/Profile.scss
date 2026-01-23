@@ -1,134 +1,172 @@
+// src/styles/Profile.scss
 .profile-page {
   width: 90%;
-  margin: auto;
-  margin-top: 30px;
-  font-family: Arial, sans-serif;
-  color: #333;
+  max-width: 1000px;
+  margin: 40px auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* ================= USER CARD ================= */
+/* ================= USER PROFILE CARD ================= */
 .user-card {
   display: flex;
-  background: #f5ece1;
-  padding: 20px;
-  border-radius: 10px;
-  gap: 20px;
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 15px;
+  gap: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  margin-bottom: 40px;
+  border: 1px solid #eee;
+
+  .user-image img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%; // صورة دائرية للملف الشخصي
+    border: 4px solid #f5ece1;
+  }
+
+  .user-details {
+    flex: 1;
+    .name {
+      font-size: 28px;
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      p {
+        margin: 0;
+        color: #7f8c8d;
+        strong { color: #34495e; }
+      }
+    }
+  }
+
+  .logout-btn {
+    margin-top: 20px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    &:hover { background: #c0392b; }
+  }
 }
 
-.user-image img {
-  width: 170px;
-  height: 170px;
-  object-fit: cover;
-  border-radius: 10px;
-}
-
-.user-details {
-  flex: 1;
-}
-
-.user-details .name {
-  margin-bottom: 15px;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 20px;
-}
-
-/* ================= SECTION BOX ================= */
-.section {
-  background: #f5ece1;
-  margin-top: 25px;
-  padding: 20px;
-  border-radius: 10px;
-}
-
-.section h3 {
+/* ================= DONATION CARDS LIST ================= */
+.section-title {
+  font-size: 22px;
   margin-bottom: 20px;
+  color: #2c3e50;
+  border-bottom: 2px solid #e74c3c;
+  display: inline-block;
+  padding-bottom: 5px;
 }
 
-/* ================= APPOINTMENT ================= */
-.appointment-box {
+.bookings-list {
   display: flex;
-  gap: 20px;
-  justify-content: center;
-  margin-bottom: 10px;
+  flex-direction: column;
+  gap: 20px; // ده اللي بيفصل بين كل دونيشن والتاني
 }
 
-.date-box,
-.clock-box {
-  background: #fff;
-  width: 200px;;
-  padding: 12px;
-  text-align: center;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.date-box h4,
-.clock-box h4 {
-  color: #3180b7;
-  margin-bottom: 5px;
-}
-
-.center-box {
+.booking-item-card {
   background: white;
-  width: 400px;
-  padding: 15px;
-  text-align: center;
-  margin-top: 20px;
-  border-radius: 10px;
-  font-size: 18px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  margin: 0 auto;
-}
-
-.center-box h4 {
-  color: #3180b7;
-  margin-bottom: 5px;
-}
-
-
-/* ================= TABLE ================= */
-.history-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  margin-top: 15px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  border-left: 5px solid #e74c3c; // علامة حمراء مميزة للتبرع
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-3px);
+  }
+
+  .card-header {
+    background: #fdfdfd;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+
+    .id-badge { color: #95a5a6; font-weight: bold; }
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      text-transform: uppercase;
+      background: #f39c12; // لون الـ Pending
+      color: white;
+      &.approved { background: #27ae60; }
+    }
+  }
+
+  .card-body {
+    padding: 20px;
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+
+    .info-section {
+      flex: 1;
+      h4 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 16px;
+        color: #e74c3c;
+      }
+      p {
+        margin: 5px 0;
+        font-size: 14px;
+        color: #555;
+      }
+    }
+
+    .vertical-divider {
+      width: 1px;
+      background: #eee;
+      align-self: stretch;
+    }
+
+    .highlight-blood {
+      background: #ffeeee;
+      color: #e74c3c;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+  }
+
+  .card-footer {
+    padding: 10px 20px;
+    background: #fafafa;
+    text-align: right;
+
+    .delete-action-btn {
+      background: none;
+      border: 1px solid #bdc3c7;
+      color: #95a5a6;
+      padding: 5px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      &:hover {
+        background: #ebedef;
+        color: #c0392b;
+        border-color: #c0392b;
+      }
+    }
+  }
 }
 
-.history-table th {
-  background: #e9eef5;
-  padding: 12px;
-  text-align: center;
-}
-
-.history-table td {
-  padding: 12px;
-  border-top: 1px solid #ddd;
-}
+.status-text { text-align: center; padding: 50px; color: #7f8c8d; }
 
 /* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
-  .user-card {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .info-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .appointment-box {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .center-box {
-    margin-left: auto;
-    margin-right: auto;
-  }
+  .user-card { flex-direction: column; text-align: center; .info-grid { grid-template-columns: 1fr; } }
+  .card-body { flex-direction: column; gap: 15px; .vertical-divider { display: none; } }
 }

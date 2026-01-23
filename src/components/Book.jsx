@@ -1,5 +1,4 @@
 // src/components/Book.jsx
-
 import React, { useEffect, useMemo, useState } from "react";
 import "../styles/Book.scss";
 import Navbar from "./Navbar";
@@ -7,172 +6,48 @@ import img1 from "../pics/13.png";
 import img2 from "../pics/14.jpg";
 import { useLocation, useNavigate } from "react-router-dom";
 
-//--------------------------------------------------------
 function BookDonation() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // الدم اللي جاي من صفحة Request (لو موجود)
-  const preselectedBloodType = useMemo(() => {
-    const bt = location?.state?.bloodType;
-    return (bt || "").toUpperCase().trim();
-  }, [location]);
-
-  // المستشفى (Center) + urgency اللي جايين من Request (لو موجود)
-  const preselectedHospital = useMemo(() => {
-    const h = location?.state?.hospital;
-    return (h || "").trim();
-  }, [location]);
-
-  const preselectedUrgency = useMemo(() => {
-    const u = location?.state?.urgency;
-    return (u || "").trim();
-  }, [location]);
+  const requestID = location?.state?.requestID; 
+  const preselectedBloodType = useMemo(() => (location?.state?.bloodType || "").toUpperCase().trim(), [location]);
+  const preselectedHospital = useMemo(() => (location?.state?.hospital || "").trim(), [location]);
+  const preselectedUrgency = useMemo(() => (location?.state?.urgency || "").trim(), [location]);
 
   const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
-  // Locks
-  const lockBloodType = Boolean(preselectedBloodType); // لو جاي من requests -> نقفّل الاختيار
-  const lockCenter = Boolean(preselectedHospital); // لو جاي من requests -> نقفّل الـ Center
+  const lockBloodType = Boolean(preselectedBloodType);
+  const lockCenter = Boolean(preselectedHospital);
 
-  // ===== Form States (controlled) =====
   const [selectedBlood, setSelectedBlood] = useState("");
   const [centerName, setCenterName] = useState("");
-
   const [day, setDay] = useState("");
   const [clock, setClock] = useState("");
   const [fullName, setFullName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [weight, setWeight] = useState("");
   const [phone, setPhone] = useState("");
-
-  const [medications, setMedications] = useState(""); // "Yes" | "No"
-  const [surgery, setSurgery] = useState(""); // "Yes" | "No"
-  const [donatedBefore, setDonatedBefore] = useState(""); // "Yes" | "No"
-  const [infection, setInfection] = useState(""); // "Yes" | "No"
-
+  const [medications, setMedications] = useState(""); 
+  const [surgery, setSurgery] = useState(""); 
+  const [donatedBefore, setDonatedBefore] = useState(""); 
+  const [infection, setInfection] = useState(""); 
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     if (preselectedBloodType) setSelectedBlood(preselectedBloodType);
-  }, [preselectedBloodType]);
-
-  useEffect(() => {
     if (preselectedHospital) setCenterName(preselectedHospital);
-  }, [preselectedHospital]);
-
-  // ===== Helpers =====
-  const readLoggedUser = () => {
-    try {
-      const raw = localStorage.getItem("user");
-      if (!raw) return null;
-      return JSON.parse(raw);
-    } catch {
-      return null;
-    }
-  };
-
-  const loadBookings = () => {
-    try {
-      const raw = localStorage.getItem("userBookings");
-      if (!raw) return [];
-      const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : [];
-    } catch {
-      return [];
-    }
-  };
-
-  const saveBookings = (arr) => {
-    localStorage.setItem("userBookings", JSON.stringify(arr));
-  };
-
-  // ✅ نربط الحجز بطلب المستشفى (hospitalRequests)
-  const loadHospitalRequests = () => {
-    try {
-      const raw = localStorage.getItem("hospitalRequests");
-      if (!raw) return [];
-      const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : [];
-    } catch {
-      return [];
-    }
-  };
-
-  const saveHospitalRequests = (arr) => {
-    localStorage.setItem("hospitalRequests", JSON.stringify(arr));
-  };
-
-  const normalize = (v) => String(v || "").toLowerCase().trim();
-
-  const linkBookingToHospitalRequest = (newBooking) => {
-    // لو مش جاي من Requests أصلاً، مفيش حاجة نربطها
-    if (!preselectedHospital || !preselectedBloodType) return;
-
-    const reqs = loadHospitalRequests();
-    if (reqs.length === 0) return;
-
-    const h = normalize(preselectedHospital);
-    const bt = normalize(preselectedBloodType);
-    const urg = normalize(preselectedUrgency);
-
-    // هنختار "أقرب طلب" بنفس hospital/bloodType/urgency (ولو urgency مش موجود نسمح بالماتش بدونها)
-    // ونفضل الأحدث
-    const candidates = reqs
-      .map((r, i) => ({ r, i }))
-      .filter(({ r }) => {
-        const sameHospital = normalize(r?.hospital) === h;
-        const sameBlood = normalize(r?.bloodType) === bt;
-        const sameUrgency = urg ? normalize(r?.urgency) === urg : true;
-        return sameHospital && sameBlood && sameUrgency;
-      });
-
-    if (candidates.length === 0) return;
-
-    // اختار الأحدث بالـ createdAt (لو موجود) وإلا آخر واحد
-    candidates.sort((a, b) => {
-      const ta = new Date(a?.r?.createdAt || 0).getTime();
-      const tb = new Date(b?.r?.createdAt || 0).getTime();
-      return tb - ta;
-    });
-
-    const targetIndex = candidates[0].i;
-    const target = reqs[targetIndex];
-    if (!target) return;
-
-    const donation = {
-      ownerUserID: newBooking.ownerUserID, // صاحب الحساب
-      donorName: newBooking.donorName,
-      phone: newBooking.phone,
-      day: newBooking.day,
-      clock: newBooking.clock,
-      bookedAt: newBooking.createdAt,
-    };
-
-    const prev = Array.isArray(target.donations) ? target.donations : [];
-    target.donations = [...prev, donation];
-
-    reqs[targetIndex] = target;
-    saveHospitalRequests(reqs);
-  };
+  }, [preselectedBloodType, preselectedHospital]);
 
   const validate = () => {
-    if (!centerName.trim()) return "Please enter a center.";
-    if (!selectedBlood) return "Please select a blood type.";
-    if (!fullName.trim()) return "Please enter full name.";
-    if (!phone.trim()) return "Please enter phone number.";
-    if (!day) return "Please select day.";
-    if (!clock) return "Please select time.";
-    if (!birthDate) return "Please select birth date.";
+    if (!centerName.trim() || !selectedBlood || !fullName.trim() || !phone.trim() || !day || !clock) 
+      return "Please fill all required fields.";
     if (!weight || Number(weight) <= 0) return "Please enter a valid weight.";
-    if (!medications) return "Please answer medications question.";
-    if (!surgery) return "Please answer surgery question.";
-    if (!donatedBefore) return "Please answer donated before question.";
-    if (!infection) return "Please answer infection question.";
+    if (!medications || !surgery || !donatedBefore || !infection) return "Please answer all health questions.";
     return "";
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -182,48 +57,55 @@ function BookDonation() {
       return;
     }
 
-    const userObj = readLoggedUser();
-    const ownerUserID = userObj?.userID;
+    const userObj = JSON.parse(localStorage.getItem("user") || "{}");
+    const userID = userObj?.userID;
 
-    if (!ownerUserID) {
-      setErrorMsg("You are not logged in. Please login again.");
+    if (!userID) {
+      setErrorMsg("User session expired. Please login again.");
       return;
     }
 
-    const newBooking = {
-      ownerUserID, // صاحب الحساب (اللي عامل login)
-
-      // بيانات الحجز/المتبرع (قد يكون شخص آخر)
-      donorName: fullName.trim(),
-      phone: phone.trim(),
-      birthDate,
-      weight: Number(weight),
-      day,
-      clock,
-
-      // من Request (لو جاي)
-      center: centerName.trim(),
-      bloodType: selectedBlood,
-      urgency: preselectedUrgency || "",
-
-      // أسئلة
-      medications,
-      surgery,
-      donatedBefore,
-      infection,
-
-      createdAt: new Date().toISOString(),
+    // ✅ تم تحديث الكائن ليرسل كافة البيانات الحقيقية إلى قاعدة البيانات
+    const donationData = {
+      UserID: parseInt(userID),
+      HospitalRequestID: requestID ? parseInt(requestID) : null,
+      DonationDate: `${day}T${clock}:00`,
+      BloodType: selectedBlood,
+      Status: "Pending",
+      // الحقول الإضافية التي تم تفعيلها في الـ Migration
+      FullName: fullName,
+      Phone: phone,
+      Weight: parseFloat(weight),
+      Medications: medications,
+      RecentSurgery: surgery,
+      DonatedBefore: donatedBefore,
+      RecentInfection: infection,
+      CenterName: centerName
     };
 
-    const all = loadBookings();
-    all.push(newBooking);
-    saveBookings(all);
+    try {
+      const response = await fetch("http://localhost:5240/api/Donations/CreateDonation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(donationData),
+      });
 
-    // ✅ اربط الحجز بطلب المستشفى (يضيف donation داخل hospitalRequests)
-    linkBookingToHospitalRequest(newBooking);
+      const result = await response.json();
 
-    // بعد الحفظ → روح للبروفايل عشان تشوفها ظهرت
-    navigate("/profile", { replace: true });
+      if (response.ok) {
+        alert("Donation booked successfully!");
+        navigate("/profile", { replace: true });
+      } else {
+        if (result.errors) {
+            const errorFields = Object.keys(result.errors).join(", ");
+            setErrorMsg(`Field Error: ${errorFields}. Check the console for details.`);
+        } else {
+            setErrorMsg(result.message || "Failed to save donation.");
+        }
+      }
+    } catch (error) {
+      setErrorMsg("Server connection error. Is the backend running?");
+    }
   };
 
   return (
@@ -231,208 +113,74 @@ function BookDonation() {
       <Navbar />
       <div className="content">
         <form className="donation-form" onSubmit={onSubmit} noValidate>
-          <h2>booking donation</h2>
-
-          {/* ✅ لو جاي من Requests: اعرض Urgency فقط */}
-          {preselectedUrgency ? (
+          <h2>Booking Donation</h2>
+          
+          {preselectedUrgency && (
             <div style={{ marginTop: 6, marginBottom: 12, opacity: 0.85 }}>
-              Urgency: <b>{preselectedUrgency}</b>
+              Urgency Level: <b>{preselectedUrgency}</b>
             </div>
-          ) : null}
+          )}
 
-          {errorMsg ? (
-            <p style={{ marginTop: 8, marginBottom: 10, color: "salmon" }}>
+          {errorMsg && (
+            <div style={{ color: "white", background: "#e74c3c", padding: "10px", borderRadius: "8px", marginBottom: "15px" }}>
               {errorMsg}
-            </p>
-          ) : null}
+            </div>
+          )}
 
           <label>Center</label>
-          <input
-            type="text"
-            placeholder="Enter Center Name"
-            value={centerName}
-            onChange={(e) => setCenterName(e.target.value)}
-            readOnly={lockCenter}
-          />
+          <input type="text" value={centerName} onChange={(e) => setCenterName(e.target.value)} readOnly={lockCenter} />
 
           <label>Day</label>
-          <input
-            type="date"
-            value={day}
-            onChange={(e) => setDay(e.target.value)}
-          />
+          <input type="date" value={day} onChange={(e) => setDay(e.target.value)} />
 
           <label>Clock</label>
-          <input
-            type="time"
-            value={clock}
-            onChange={(e) => setClock(e.target.value)}
-          />
+          <input type="time" value={clock} onChange={(e) => setClock(e.target.value)} />
 
           <label>Full Name</label>
-          <input
-            type="text"
-            placeholder="Enter Your Name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-          />
+          <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} />
 
           <label>Birth Date</label>
-          <input
-            type="date"
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
-          />
+          <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
 
-          <label>Weight</label>
-          <input
-            type="number"
-            placeholder="Enter your weight"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
-          />
+          <label>Weight (kg)</label>
+          <input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} />
 
           <label>Phone Number</label>
-          <input
-            type="tel"
-            placeholder="Enter your number"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
+          <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
 
           <div className="section">
             <label>Blood Type</label>
-
-            {lockBloodType ? (
-              <p style={{ marginTop: 6, marginBottom: 10, opacity: 0.85 }}>
-                Blood type is pre-selected from the request:{" "}
-                <b>{preselectedBloodType}</b>
-              </p>
-            ) : null}
-
             <div className="blood-type">
-              {bloodTypes.map((type) => {
-                const checked = selectedBlood === type;
-
-                return (
-                  <label key={type}>
-                    <input
-                      type="radio"
-                      name="blood"
-                      checked={checked}
-                      onChange={() => setSelectedBlood(type)}
-                      disabled={lockBloodType && !checked}
-                    />{" "}
-                    {type}
-                  </label>
-                );
-              })}
+              {bloodTypes.map((type) => (
+                <label key={type}>
+                  <input
+                    type="radio"
+                    checked={selectedBlood === type}
+                    onChange={() => setSelectedBlood(type)}
+                    disabled={lockBloodType && selectedBlood !== type}
+                  /> {type}
+                </label>
+              ))}
             </div>
           </div>
 
-          <div className="section">
-            <label>Are you currently taking any medications?</label>
-            <div className="options">
-              <label>
-                <input
-                  type="radio"
-                  name="medications"
-                  checked={medications === "Yes"}
-                  onChange={() => setMedications("Yes")}
-                />{" "}
-                Yes
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="medications"
-                  checked={medications === "No"}
-                  onChange={() => setMedications("No")}
-                />{" "}
-                No
-              </label>
+          {[
+            { label: "Taking medications?", state: medications, set: setMedications, name: "med" },
+            { label: "Surgeries (past 6 months)?", state: surgery, set: setSurgery, name: "surg" },
+            { label: "Donated blood before?", state: donatedBefore, set: setDonatedBefore, name: "don" },
+            { label: "Recent infections?", state: infection, set: setInfection, name: "inf" },
+          ].map((q) => (
+            <div className="section" key={q.name}>
+              <label>{q.label}</label>
+              <div className="options">
+                <label><input type="radio" checked={q.state === "Yes"} onChange={() => q.set("Yes")} /> Yes</label>
+                <label><input type="radio" checked={q.state === "No"} onChange={() => q.set("No")} /> No</label>
+              </div>
             </div>
-          </div>
+          ))}
 
-          <div className="section">
-            <label>Have you had any surgeries in the past 6 months?</label>
-            <div className="options">
-              <label>
-                <input
-                  type="radio"
-                  name="surgery"
-                  checked={surgery === "Yes"}
-                  onChange={() => setSurgery("Yes")}
-                />{" "}
-                Yes
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="surgery"
-                  checked={surgery === "No"}
-                  onChange={() => setSurgery("No")}
-                />{" "}
-                No
-              </label>
-            </div>
-          </div>
-
-          <div className="section">
-            <label>Have you donated blood before?</label>
-            <div className="options">
-              <label>
-                <input
-                  type="radio"
-                  name="donated"
-                  checked={donatedBefore === "Yes"}
-                  onChange={() => setDonatedBefore("Yes")}
-                />{" "}
-                Yes
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="donated"
-                  checked={donatedBefore === "No"}
-                  onChange={() => setDonatedBefore("No")}
-                />{" "}
-                No
-              </label>
-            </div>
-          </div>
-
-          <div className="section">
-            <label>
-              Have you recently had any infections (Hepatitis, COVID-19, etc)?
-            </label>
-            <div className="options">
-              <label>
-                <input
-                  type="radio"
-                  name="infection"
-                  checked={infection === "Yes"}
-                  onChange={() => setInfection("Yes")}
-                />{" "}
-                Yes
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="infection"
-                  checked={infection === "No"}
-                  onChange={() => setInfection("No")}
-                />{" "}
-                No
-              </label>
-            </div>
-          </div>
-
-          <button type="submit" className="confirm-btn">
-            Confirm
-          </button>
+          <button type="submit" className="confirm-btn">Confirm</button>
         </form>
-
         <div className="images">
           <img src={img1} alt="lab" />
           <img src={img2} alt="lab" />
@@ -441,5 +189,5 @@ function BookDonation() {
     </div>
   );
 }
-//--------------------------------------------------------
+
 export default BookDonation;
